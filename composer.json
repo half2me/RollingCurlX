@@ -1,0 +1,30 @@
+{
+  "name": "half2me/curlx",
+  "type": "library",
+  "description": "Library for working with shoes",
+  "keywords": ["size","size converter","shoe", "converter"],
+  "homepage": "https://github.com/half2me/shoemagick",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "ShoeMagick\\": "src"
+    }
+  },
+  "require": {
+    "php": ">=5.4"
+  },
+  "support": {
+    "source": "https://github.com/half2me/shoemagick"
+  },
+  "extra": {
+    "installer-name": "ShoeMagick"
+  },
+  "authors": [
+    {
+      "name": "Benjamin Tamasi",
+      "email": "h@lfto.me",
+      "homepage": "http://lfto.me",
+      "role": "Developer"
+    }
+  ]
+}

@@ -1,11 +1,16 @@
 <?php
+
+namespace CurlX;
+
 /*
 **  RollingCurlX - cURL-Multi wrapper class
-**  URL: http://github.com/marcushat/RollingCurlX
+**  URL:
 **
-**  a fork of Rolling Curl (http://code.google.com/p/rolling-curl/)
+**  a fork of RollingCurlX (http://github.com/marcushat/RollingCurlX)
 */
-Class RollingCurlX {
+
+class CurlX
+{
     private $_maxConcurrent = 0; //max. number of simultaneous connections allowed
     private $_options = []; //shared cURL options
     private $_headers = []; //shared cURL request headers
@@ -13,45 +18,52 @@ Class RollingCurlX {
     private $_timeout = 5000; //timeout used for curl_multi_select function
     private $requests = []; //request_queue
 
-    function __construct($max_concurrent = 10) {
+    function __construct($max_concurrent = 10)
+    {
         $this->setMaxConcurrent($max_concurrent);
     }
 
-    public function setMaxConcurrent($max_requests) {
-        if($max_requests > 0) {
+    public function setMaxConcurrent($max_requests)
+    {
+        if ($max_requests > 0) {
             $this->_maxConcurrent = $max_requests;
         }
     }
 
-    public function setOptions(array $options) {
+    public function setOptions(array $options)
+    {
         $this->_options = $options;
     }
 
-    public function setHeaders(array $headers) {
-        if(is_array($headers) && count($headers)) {
+    public function setHeaders(array $headers)
+    {
+        if (is_array($headers) && count($headers)) {
             $this->_headers = $headers;
         }
     }
 
-    public function setCallback(callable $callback) {
+    public function setCallback(callable $callback)
+    {
         $this->_callback = $callback;
     }
 
-    public function setTimeout($timeout) { //in milliseconds
-        if($timeout > 0) {
-            $this->_timeout = $timeout/1000; //to seconds
+    public function setTimeout($timeout)
+    { //in milliseconds
+        if ($timeout > 0) {
+            $this->_timeout = $timeout / 1000; //to seconds
         }
     }
 
     //Add a request to the request queue
     public function addRequest(
-                        $url,
-                        $post_data = NULL,
-                        callable $callback = NULL, //individual callback
-                        $user_data = NULL,
-                        array $options = NULL, //individual cURL options
-                        array $headers = NULL //individual cURL request headers
-    ) { //Add to request queue
+        $url,
+        $post_data = NULL,
+        callable $callback = NULL, //individual callback
+        $user_data = NULL,
+        array $options = NULL, //individual cURL options
+        array $headers = NULL //individual cURL request headers
+    )
+    { //Add to request queue
         $this->requests[] = [
             'url' => $url,
             'post_data' => ($post_data) ? $post_data : NULL,
@@ -64,19 +76,21 @@ Class RollingCurlX {
     }
 
     //Reset request queue
-    public function reset() {
+    public function reset()
+    {
         $this->requests = [];
     }
 
     //Execute the request queue
-    public function execute() {
+    public function execute()
+    {
         $max_concurrent = min(count($this->requests), $this->_maxConcurrent);
 
         //the request map that maps the request queue to request curl handles
         $requests_map = [];
         $multi_handle = curl_multi_init();
         //start processing the initial request queue
-        for($i = 0; $i < $max_concurrent; $i++) {
+        for ($i = 0; $i < $max_concurrent; $i++) {
             $ch = curl_init();
 
             $request =& $this->requests[$i];
@@ -87,27 +101,27 @@ Class RollingCurlX {
 
 
             //add curl handle of a request to the request map
-            $key = (string) $ch;
+            $key = (string)$ch;
             $requests_map[$key] = $i;
         }
-        do{
-            while(($mh_status = curl_multi_exec($multi_handle, $active)) == CURLM_CALL_MULTI_PERFORM);
-            if($mh_status != CURLM_OK) {
+        do {
+            while (($mh_status = curl_multi_exec($multi_handle, $active)) == CURLM_CALL_MULTI_PERFORM) ;
+            if ($mh_status != CURLM_OK) {
                 break;
             }
 
             //a request is just completed, find out which one
-            while($completed = curl_multi_info_read($multi_handle)) {
+            while ($completed = curl_multi_info_read($multi_handle)) {
                 $ch = $completed['handle'];
                 $request_info = curl_getinfo($ch);
-                if(curl_errno($ch) !== 0 || intval($request_info['http_code']) !== 200) { //if server responded with http error
+                if (curl_errno($ch) !== 0 || intval($request_info['http_code']) !== 200) { //if server responded with http error
                     $response = false;
                 } else { //sucessful response
                     $response = curl_multi_getcontent($ch);
                 }
 
                 //get request info
-                $key = (string) $ch;
+                $key = (string)$ch;
                 $request =& $this->requests[$requests_map[$key]]; //map handler to request index to get request info
                 $url = $request['url'];
                 $callback = $request['callback'];
@@ -116,7 +130,7 @@ Class RollingCurlX {
                 $this->stopTimer($request); //record request time
                 $time = $request['time'];
 
-                if($response && (isset($this->_options[CURLOPT_HEADER]) || isset($options[CURLOPT_HEADER]))) {
+                if ($response && (isset($this->_options[CURLOPT_HEADER]) || isset($options[CURLOPT_HEADER]))) {
                     $k = intval($request_info['header_size']);
                     $request_info['response_header'] = substr($response, 0, $k);
                     $response = substr($response, $k);
@@ -127,13 +141,13 @@ Class RollingCurlX {
                 curl_multi_remove_handle($multi_handle, $ch);
 
                 //call the callback function and pass request info and user data to it
-                if($callback) {
+                if ($callback) {
                     call_user_func($callback, $response, $url, $request_info, $user_data, $time);
                 }
                 $request = NULL; //free up memory now just incase response was large
 
                 //add/start a new request to the request queue
-                if($i < count($this->requests) && isset($this->requests[$i])) { //if requests left
+                if ($i < count($this->requests) && isset($this->requests[$i])) { //if requests left
                     $ch = curl_init();
 
                     $request =& $this->requests[$i];
@@ -143,13 +157,13 @@ Class RollingCurlX {
                     curl_multi_add_handle($multi_handle, $ch);
 
                     //add curl handle of a new request to the request map
-                    $key = (string) $ch;
+                    $key = (string)$ch;
                     $requests_map[$key] = $i;
                     $i++;
                 }
             }
-            if($active) {
-                if(curl_multi_select($multi_handle, $this->_timeout) === -1) { //wait for activity on any connection
+            if ($active) {
+                if (curl_multi_select($multi_handle, $this->_timeout) === -1) { //wait for activity on any connection
                     usleep(5);
                 }
 
@@ -161,9 +175,9 @@ Class RollingCurlX {
     }
 
 
-
     //Build individual cURL options for a request
-    private function buildOptions(array $request) {
+    private function buildOptions(array $request)
+    {
         $url = $request['url'];
         $post_data = $request['post_data'];
         $individual_opts = $request['options'];
@@ -176,35 +190,35 @@ Class RollingCurlX {
         $options[CURLOPT_RETURNTRANSFER] = true;
         $options[CURLOPT_TIMEOUT] = $this->_timeout;
 
-        if($url) {
+        if ($url) {
             $options[CURLOPT_URL] = $url;
         }
 
-        if($headers) {
+        if ($headers) {
             $options[CURLOPT_HTTPHEADER] = $headers;
         }
 
         // enable POST method and set POST parameters
-        if($post_data) {
+        if ($post_data) {
             $options[CURLOPT_POST] = 1;
-            $options[CURLOPT_POSTFIELDS] = is_array($post_data)? http_build_query($post_data) : $post_data;
+            $options[CURLOPT_POSTFIELDS] = is_array($post_data) ? http_build_query($post_data) : $post_data;
         }
         return $options;
     }
 
 
-
-    private function addTimer(array &$request) { //adds timer object to request
+    private function addTimer(array &$request)
+    { //adds timer object to request
         $request['timer'] = microtime(true);
         $request['time'] = false; //default if not overridden by time later
     }
 
-    private function stopTimer(array &$request) {
+    private function stopTimer(array &$request)
+    {
         $start_time = $request['timer'];
         $end_time = microtime(true);
         $elapsed_time = rtrim(sprintf('%.20F', ($end_time - $start_time)), '0') . 'secs'; //convert float to string
-        $request['time'] = $elapsed_time*1000; //
+        $request['time'] = $elapsed_time * 1000; //
         unset($request['timer']);
     }
 }
-?>
