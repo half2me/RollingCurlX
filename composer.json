@@ -1,9 +1,9 @@
 {
   "name": "half2me/curlx",
   "type": "library",
-  "description": "Library for working with shoes",
-  "keywords": ["size","size converter","shoe", "converter"],
-  "homepage": "https://github.com/half2me/shoemagick",
+  "description": "Wrapper for curl multi",
+  "keywords": ["curl","multi","thread", "async"],
+  "homepage": "https://github.com/half2me/curlx",
   "license": "MIT",
   "autoload": {
     "psr-4": {
@@ -14,16 +14,21 @@
     "php": ">=5.4"
   },
   "support": {
-    "source": "https://github.com/half2me/shoemagick"
+    "source": "https://github.com/half2me/curlx"
   },
   "extra": {
-    "installer-name": "ShoeMagick"
+    "installer-name": "CurlX"
   },
   "authors": [
     {
       "name": "Benjamin Tamasi",
       "email": "h@lfto.me",
       "homepage": "http://lfto.me",
+      "role": "Developer"
+    },
+    {
+      "name": "marcushat",
+      "homepage": "https://github.com/marcushat/RollingCurlX",
       "role": "Developer"
     }
   ]
