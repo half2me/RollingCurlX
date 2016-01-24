@@ -15,7 +15,8 @@ First initialize class with the maximum number of concurrent requests you want o
 All requests after this will be queued until one completes.
 
 ```php
-$RCX = new RollingCurlX(10);
+use CurlX\CurlX;
+$curlX = new CurlX(10);
 ```
 
 Next add a request to the queue
@@ -25,7 +26,7 @@ $post_data = ['user' => 'bob', 'token' => 'dQw4w9WgXcQ']; //set to NULL if not u
 $user_data = ['foo', $whatever];
 $options = [CURLOPT_FOLLOWLOCATION => false];
 
-$RCX->addRequest($url, $post_data, 'callback_functn', $user_data, $options, $headers);
+$curlX->addRequest($url, $post_data, 'callback_functn', $user_data, $options, $headers);
 ```
 
 The callback function should look like this:
@@ -38,7 +39,7 @@ function callback_functn($response, $url, $request_info, $user_data, $time) {
 
 Send the requests. Blocks until all requests complete or timeout.
 ```php
-$RCX->execute();
+$curlX->execute();
 ```
 
 See? Easy. Thats pretty much it for a simple request.
@@ -46,13 +47,13 @@ See? Easy. Thats pretty much it for a simple request.
 There's more if you need it though...
 ```php
 //Set a timeout on all requests:
-$RCX->setTimeout(3000); //in milliseconds
+$curlX->setTimeout(3000); //in milliseconds
 
 //To set options for all requests(will be overridden by individual request options):
-$RCX->setOptions([$curl_options]);
+$curlX->setOptions([$curl_options]);
 
 //To do the same with http headers:
-$RCX->setHeaders(['Content-type: application/xml', 'Authorization: gfhjui']);
+$curlX->setHeaders(['Content-type: application/xml', 'Authorization: gfhjui']);
 ```
 
 ### Issues
