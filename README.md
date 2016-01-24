@@ -1,15 +1,12 @@
-# RollingCurlX
+# CurlX
 
-Rolling Curl X is a fork of Rolling Curl wrapper cURL Multi. It aims at making concurrent http requests in PHP as easy as possible.
-
+Curl X is a fork of [RollingCurlX](https://github.com/marcushat/RollingCurlX). It aims at making concurrent http requests in PHP as easy as possible. I created this fork to make this wrapper installable via composer.
 
 ####License
 MIT
 
-#### Version
-0.9.0
-
-for PHP 5.4+
+#### Requirements
+PHP 5.4+
 
 ##How to Use
 Using this class is very easy.
@@ -62,5 +59,3 @@ $RCX->setHeaders(['Content-type: application/xml', 'Authorization: gfhjui']);
 If you find any issues please let me know.
 
 Enjoy.
-
-http://www.github.com/marcushat/rollingcurlx
