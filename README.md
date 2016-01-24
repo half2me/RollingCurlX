@@ -1,6 +1,6 @@
 # CurlX
 
-Curl X is a fork of [RollingCurlX](https://github.com/marcushat/RollingCurlX). It aims at making concurrent http requests in PHP as easy as possible. I created this fork to make this wrapper installable via composer.
+Curl X is a fork of [RollingCurlX](https://github.com/marcushat/RollingCurlX). It aims at making concurrent http requests in PHP as easy as possible. I created this fork to make this wrapper installable via composer, and it is now using PSR-4
 
 ####License
 MIT
