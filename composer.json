@@ -7,7 +7,7 @@
   "license": "MIT",
   "autoload": {
     "psr-4": {
-      "ShoeMagick\\": "src"
+      "CurlX\\": "src"
     }
   },
   "require": {
