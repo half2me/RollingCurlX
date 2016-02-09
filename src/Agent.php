@@ -12,6 +12,8 @@ class Agent
     protected $startTime;
     protected $endTime;
 
+    // TODO: normalize headers key => value is key: value
+
     /**
      * @var RequestInterface[] $requests array of Requests
      */
@@ -83,7 +85,7 @@ class Agent
      * @param null $url URL to send the request to
      * @return RequestInterface the newly added request object
      */
-    public function request($url = null)
+    public function newRequest($url = null)
     {
         return $this->addRequest(new Request($url), true);
     }
