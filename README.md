@@ -1,4 +1,7 @@
-# CurlX
+# CurlX  
+[![Build Status](https://travis-ci.org/half2me/curlx.svg?branch=master)](https://travis-ci.org/half2me/curlx)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/half2me/curlx/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/half2me/curlx/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/half2me/curlx/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/half2me/curlx/?branch=master)
 
 Curl X is a fork of [RollingCurlX](https://github.com/marcushat/RollingCurlX). At fist I only created this fork to make it installable via composer for a project I was working on.
 Now it is a modern, easy-to-use, awesome wrapper for cUrl Multi Handler. With Agents and Requests, take a look at how easy everything has become.
