@@ -4,11 +4,13 @@ namespace CurlX;
 
 class Agent
 {
-    private $maxConcurrent = 0; //max. number of simultaneous connections allowed
-    private $options = []; //shared cURL options
-    private $headers = []; //shared cURL request headers
-    private $timeout = 5000; //timeout used for curl_multi_select function
-    private $requests = []; //request_queue
+    protected $maxConcurrent = 0; //max. number of simultaneous connections allowed
+    protected $options = []; //shared cURL options
+    protected $headers = []; //shared cURL request headers
+    protected $timeout = 5000; //timeout used for curl_multi_select function
+    protected $post = [];
+    protected $startTime;
+    protected $endTime;
 
     /**
      * Agent constructor.
@@ -36,7 +38,9 @@ class Agent
      */
     public function setOptions(array $options)
     {
-        $this->options += $options;
+        if(!empty($options)) {
+            $this->options += $options;
+        }
     }
 
     /**
@@ -45,7 +49,7 @@ class Agent
      */
     public function setHeaders(array $headers)
     {
-        if (is_array($headers) && !empty($headers)) {
+        if (!empty($headers)) {
             $this->headers += $headers;
         }
     }
@@ -63,12 +67,24 @@ class Agent
     }
 
     /**
+     * Adds a new request to the queue and returns it
+     * this request will have its default options set to global options
+     * @return RequestInterface the newly added request object
+     */
+    public function request()
+    {
+        return $this->addRequest(new Request());
+    }
+
+    /**
      * Add a request to the request queue
      * @param RequestInterface $request the request to add
+     * @return RequestInterface
      */
     public function addRequest(RequestInterface $request)
     {
         $this->requests[] = $request;
+        return $request;
     }
 
     /**
@@ -109,48 +125,9 @@ class Agent
             }
 
             usleep(15); //save CPU cycles, prevent continuous checking
-        } while ($active || count($requests_map)); //End do-while
-
-        $this->reset();
+        } while ($active || count($requests_map)); // End do-while
         curl_multi_close($multi_handle);
     }
-
-
-
-    //Build individual cURL options for a request
-    private function buildOptions(array $request)
-    {
-        $url = $request['url'];
-        $post_data = $request['post_data'];
-        $individual_opts = $request['options'];
-        $individual_headers = $request['headers'];
-
-        $options = ($individual_opts) ? $individual_opts + $this->_options : $this->_options; //merge shared and individual request options
-        $headers = ($individual_headers) ? $individual_headers + $this->_headers : $this->_headers; //merge shared and individual request headers
-
-        //the below will overide the corresponding default or individual options
-        $options[CURLOPT_RETURNTRANSFER] = true;
-
-        $options[CURLOPT_NOSIGNAL] = 1;
-        $options[CURLOPT_CONNECTTIMEOUT] = max(1, $this->_timeout/1000); //minimum of 1 second
-        $options[CURLOPT_TIMEOUT] = $this->_timeout/1000;
-
-        if($url) {
-            $options[CURLOPT_URL] = $url;
-        }
-
-        if($headers) {
-            $options[CURLOPT_HTTPHEADER] = $headers;
-        }
-
-        // enable POST method and set POST parameters
-        if($post_data) {
-            $options[CURLOPT_POST] = 1;
-            $options[CURLOPT_POSTFIELDS] = is_array($post_data)? http_build_query($post_data) : $post_data;
-        }
-        return $options;
-    }
-
 
     private function init_request($request_num, $multi_handle, &$requests_map) {
         $request =& $this->requests[$request_num];

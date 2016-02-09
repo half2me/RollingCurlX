@@ -36,4 +36,8 @@ interface RequestInterface
     function setHeaders(array $headers);
 
     function getHeaders();
+
+    function setOptions(array $options);
+
+    function getOptions();
 }

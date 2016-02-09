@@ -20,6 +20,7 @@ class Request implements RequestInterface
     protected $timeout;
     protected $curlHandle;
     protected $headers = [];
+    protected $options = [];
 
     private function camelize($str)
     {
@@ -52,6 +53,10 @@ class Request implements RequestInterface
     public function __construct($url = null)
     {
         $this->setUrl($url);
+
+        // Defaults
+        $this->options[CURLOPT_RETURNTRANSFER] = true;
+        $this->options[CURLOPT_NOSIGNAL] = 1;
     }
 
     public function setUrl($url)
@@ -69,6 +74,10 @@ class Request implements RequestInterface
     public function setPostData(array $postValues)
     {
         $this->post += $postValues;
+        $this->options[CURLOPT_POST] = 1;
+        if(!empty($this->post)) {
+            $this->options[CURLOPT_POSTFIELDS] = http_build_query($this->post);
+        }
     }
 
     public function getPostData()
@@ -121,40 +130,38 @@ class Request implements RequestInterface
     {
         if ($timeout > 0) {
             $this->timeout = $timeout;
+            $this->options[CURLOPT_TIMEOUT_MS] = $this->timeout;
         }
     }
 
     public function getHandle()
     {
         if(!isset($this->curlHandle)) {
-            $this->init();
+            $this->curlHandle = curl_init($this->url);
+            curl_setopt_array($this->curlHandle, $this->options);
         }
 
         return $this->curlHandle;
     }
 
-    protected function init()
-    {
-        $this->curlHandle = curl_init($this->url);
-        $options = [];
-        if(isset($this->post)) {
-            $options[CURLOPT_POST] = 1;
-            $options[CURLOPT_POSTFIELDS] = http_build_query($this->post);
-        }
-        $options[CURLOPT_RETURNTRANSFER] = true;
-        $options[CURLOPT_NOSIGNAL] = 1;
-        $options[CURLOPT_CONNECTTIMEOUT] = max(1, $this->timeout/1000); //minimum of 1 second
-        $options[CURLOPT_TIMEOUT] = $this->_timeout/1000;
-        curl_setopt_array($this->curlHandle, $options);
-    }
-
     function setHeaders(array $headers)
     {
         $this->headers += $headers;
+        $this->options[CURLOPT_HTTPHEADER] = $headers;
     }
 
     function getHeaders()
     {
         return $this->headers;
+    }
+
+    function setOptions(array $options)
+    {
+        $this->options += $options;
+    }
+
+    function getOptions()
+    {
+        return $this->options;
     }
 }
