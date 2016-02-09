@@ -2,19 +2,11 @@
 
 namespace CurlX;
 
-/*
-**  RollingCurlX - cURL-Multi wrapper class
-**  URL:
-**
-**  a fork of RollingCurlX (http://github.com/marcushat/RollingCurlX)
-*/
-
-class CurlX
+class Agent
 {
     private $_maxConcurrent = 0; //max. number of simultaneous connections allowed
     private $_options = []; //shared cURL options
     private $_headers = []; //shared cURL request headers
-    private $_callback = NULL; //default callback
     private $_timeout = 5000; //timeout used for curl_multi_select function
     private $requests = []; //request_queue
 
@@ -23,6 +15,10 @@ class CurlX
         $this->setMaxConcurrent($max_concurrent);
     }
 
+    /**
+     * Set the maximum concurrent requests
+     * @param int $max_requests maximum concurrent requests
+     */
     public function setMaxConcurrent($max_requests)
     {
         if ($max_requests > 0) {
@@ -30,10 +26,15 @@ class CurlX
         }
     }
 
+    /**
+     * Set options for cUrl Mutli
+     * @param array $options array of options
+     */
     public function setOptions(array $options)
     {
         $this->_options = $options;
     }
+
 
     public function setHeaders(array $headers)
     {
@@ -54,7 +55,16 @@ class CurlX
         }
     }
 
-    //Add a request to the request queue
+    /**
+     * Add a request to the request queue
+     * @param $url
+     * @param null $post_data
+     * @param callable|NULL $callback
+     * @param null $user_data
+     * @param array|NULL $options
+     * @param array|NULL $headers
+     * @return int
+     */
     public function addRequest(
         $url,
         $post_data = NULL,
@@ -231,8 +241,8 @@ class CurlX
 
 
     private function check_for_timeouts($mh) {
-        $now = microtime($true);
-        $request_map = $this->_request_map;
+        $now = microtime(true);
+        $request_maps = $this->_request_map;
         $requests = $this->_request_map;
         foreach($request_maps as $ch_hash => $request_num) {
             $request = $requests[$request_num];

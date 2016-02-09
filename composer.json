@@ -1,7 +1,7 @@
 {
   "name": "half2me/curlx",
   "type": "library",
-  "description": "Wrapper for curl multi",
+  "description": "Wrapper for cUel Multi",
   "keywords": ["curl","multi","thread", "async"],
   "homepage": "https://github.com/half2me/curlx",
   "license": "MIT",
