@@ -18,6 +18,8 @@ class Request implements RequestInterface
     protected $result;
     protected $listeners = [];
     protected $timeout;
+    protected $curlHandle;
+    protected $headers = [];
 
     private function camelize($str)
     {
@@ -41,6 +43,15 @@ class Request implements RequestInterface
             return $this->$m();
         }
         else user_error("undefined property $name");
+    }
+
+    /**
+     * Request constructor.
+     * @param string $url optional url
+     */
+    public function __construct($url = null)
+    {
+        $this->setUrl($url);
     }
 
     public function setUrl($url)
@@ -111,5 +122,39 @@ class Request implements RequestInterface
         if ($timeout > 0) {
             $this->timeout = $timeout;
         }
+    }
+
+    public function getHandle()
+    {
+        if(!isset($this->curlHandle)) {
+            $this->init();
+        }
+
+        return $this->curlHandle;
+    }
+
+    protected function init()
+    {
+        $this->curlHandle = curl_init($this->url);
+        $options = [];
+        if(isset($this->post)) {
+            $options[CURLOPT_POST] = 1;
+            $options[CURLOPT_POSTFIELDS] = http_build_query($this->post);
+        }
+        $options[CURLOPT_RETURNTRANSFER] = true;
+        $options[CURLOPT_NOSIGNAL] = 1;
+        $options[CURLOPT_CONNECTTIMEOUT] = max(1, $this->timeout/1000); //minimum of 1 second
+        $options[CURLOPT_TIMEOUT] = $this->_timeout/1000;
+        curl_setopt_array($this->curlHandle, $options);
+    }
+
+    function setHeaders(array $headers)
+    {
+        $this->headers += $headers;
+    }
+
+    function getHeaders()
+    {
+        return $this->headers;
     }
 }

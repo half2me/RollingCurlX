@@ -4,106 +4,76 @@ namespace CurlX;
 
 class Agent
 {
-    private $_maxConcurrent = 0; //max. number of simultaneous connections allowed
-    private $_options = []; //shared cURL options
-    private $_headers = []; //shared cURL request headers
-    private $_timeout = 5000; //timeout used for curl_multi_select function
+    private $maxConcurrent = 0; //max. number of simultaneous connections allowed
+    private $options = []; //shared cURL options
+    private $headers = []; //shared cURL request headers
+    private $timeout = 5000; //timeout used for curl_multi_select function
     private $requests = []; //request_queue
 
+    /**
+     * Agent constructor.
+     * @param int $max_concurrent max current requests
+     */
     function __construct($max_concurrent = 10)
     {
         $this->setMaxConcurrent($max_concurrent);
     }
 
     /**
-     * Set the maximum concurrent requests
+     * Set the maximum number of concurrent requests
      * @param int $max_requests maximum concurrent requests
      */
     public function setMaxConcurrent($max_requests)
     {
         if ($max_requests > 0) {
-            $this->_maxConcurrent = $max_requests;
+            $this->maxConcurrent = $max_requests;
         }
     }
 
     /**
-     * Set options for cUrl Mutli
+     * Set global cUrl options
      * @param array $options array of options
      */
     public function setOptions(array $options)
     {
-        $this->_options = $options;
+        $this->options += $options;
     }
 
-
+    /**
+     * Set global cUrl headers
+     * @param array $headers headers
+     */
     public function setHeaders(array $headers)
     {
-        if (is_array($headers) && count($headers)) {
-            $this->_headers = $headers;
+        if (is_array($headers) && !empty($headers)) {
+            $this->headers += $headers;
         }
     }
 
-    public function setCallback(callable $callback)
-    {
-        $this->_callback = $callback;
-    }
-
+    /**
+     * Set global timeout
+     * If individual requests don't have a timeout value, this will be used
+     * @param int $timeout timeout in msec
+     */
     public function setTimeout($timeout)
-    { //in milliseconds
+    {
         if ($timeout > 0) {
-            $this->_timeout = $timeout / 1000; //to seconds
+            $this->timeout = $timeout; // to seconds
         }
     }
 
     /**
      * Add a request to the request queue
-     * @param $url
-     * @param null $post_data
-     * @param callable|NULL $callback
-     * @param null $user_data
-     * @param array|NULL $options
-     * @param array|NULL $headers
-     * @return int
+     * @param RequestInterface $request the request to add
      */
-    public function addRequest(
-        $url,
-        $post_data = NULL,
-        callable $callback = NULL, //individual callback
-        $user_data = NULL,
-        array $options = NULL, //individual cURL options
-        array $headers = NULL //individual cURL request headers
-    )
-    { //Add to request queue
-        $this->requests[] = [
-            'url' => $url,
-            'post_data' => ($post_data) ? $post_data : NULL,
-            'callback' => ($callback) ? $callback : $this->_callback,
-            'user_data' => ($user_data) ? $user_data : NULL,
-            'options' => ($options) ? $options : NULL,
-            'headers' => ($headers) ? $headers : NULL
-        ];
-        return count($this->requests) - 1; //return request number/index
-    }
-
-    //Reset request queue
-    public function reset()
+    public function addRequest(RequestInterface $request)
     {
-        $this->requests = [];
+        $this->requests[] = $request;
     }
 
-    private function normalize_headers(array $headers) {
-        $normalized = [];
-        foreach($headers as $key => $header) {
-            if(is_string($key)) {
-                $normal = "$key: $header";
-            } else {
-                $header;
-            }
-            $normalized = [];
-        }
-    }
-
-    //Execute the request queue
+    /**
+     * Execute the request queue
+     */
     public function execute()
     {
         if(count($this->requests) < $this->_maxConcurrent) {
@@ -111,10 +81,11 @@ class Agent
         }
         //the request map that maps the request queue to request curl handles
         $requests_map = [];
+
         $multi_handle = curl_multi_init();
 
         //start processing the initial request queue
-        for($i = 0; $i < $this->_maxConcurrent; $i++) {
+        for($i = 0; $i < $this->maxConcurrent; $i++) {
             $this->init_request($i, $multi_handle, $requests_map);
         }
 

@@ -30,4 +30,10 @@ interface RequestInterface
     function addListener(callable $function);
 
     function setTimeout($mSecs);
+
+    function getHandle();
+
+    function setHeaders(array $headers);
+
+    function getHeaders();
 }
