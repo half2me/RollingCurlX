@@ -13,6 +13,17 @@ class Agent
     protected $endTime;
 
     /**
+     * @var RequestInterface[] $requests array of Requests
+     */
+    protected $requests;
+
+    /**
+     * @var callable[] $listeners array of listeners
+     */
+    protected $listeners = [];
+    protected $mh;
+
+    /**
      * Agent constructor.
      * @param int $max_concurrent max current requests
      */
@@ -73,7 +84,7 @@ class Agent
      */
     public function request()
     {
-        return $this->addRequest(new Request());
+        return $this->addRequest(new Request(), true);
     }
 
     /**
@@ -81,10 +92,30 @@ class Agent
      * @param RequestInterface $request the request to add
      * @return RequestInterface
      */
-    public function addRequest(RequestInterface $request)
+    public function addRequest(RequestInterface $request, $setGlobals = false)
     {
-        $this->requests[] = $request;
+        $this->requests = $request;
+        if($setGlobals) {
+            if(!empty($this->post)) $request->post = $this->post;
+            if(!empty($this->headers)) $request->headers = $this->headers;
+            if(!empty($this->options)) $request->options = $this->options;
+            $request->timeout = $this->timeout;
+        }
         return $request;
+    }
+
+    /**
+     * Returns the Request object for a give cUrl handle
+     * @param mixed $handle
+     * @return RequestInterface request with handle
+     */
+    private function getRequestByHandle($handle)
+    {
+        foreach($this->requests as $request) {
+            if($request->handle === $handle) {
+                return $request;
+            }
+        }
     }
 
     /**
@@ -92,58 +123,33 @@ class Agent
      */
     public function execute()
     {
-        if(count($this->requests) < $this->_maxConcurrent) {
-            $this->_maxConcurrent = count($this->requests);
-        }
-        //the request map that maps the request queue to request curl handles
-        $requests_map = [];
+        $this->mh = curl_multi_init();
 
-        $multi_handle = curl_multi_init();
-
-        //start processing the initial request queue
-        for($i = 0; $i < $this->maxConcurrent; $i++) {
-            $this->init_request($i, $multi_handle, $requests_map);
+        foreach($this->requests as $key => $request) {
+            curl_multi_add_handle($this->mh, $request->handle);
+            $request->startTimer();
+            if($key >= $this->maxConcurrent) break;
         }
 
         do{
             do{
-                $mh_status = curl_multi_exec($multi_handle, $active);
+                $mh_status = curl_multi_exec($this->mh, $active);
             } while($mh_status == CURLM_CALL_MULTI_PERFORM);
             if($mh_status != CURLM_OK) {
                 break;
             }
 
-            //a request is just completed, find out which one
-            while($completed = curl_multi_info_read($multi_handle)) {
-                $this->process_request($completed, $multi_handle, $requests_map);
+            // a request just completed, find out which one
+            while($completed = curl_multi_info_read($this->mh)) {
+                $request = $this->getRequestByHandle($completed['handle']);
+                $request->callback($completed);
 
                 //add/start a new request to the request queue
-                if($i < count($this->requests) && isset($this->requests[$i])) { //if requests left
-                    $this->init_request($i, $multi_handle, $requests_map);
-                    $i++;
-                }
             }
 
-            usleep(15); //save CPU cycles, prevent continuous checking
-        } while ($active || count($requests_map)); // End do-while
-        curl_multi_close($multi_handle);
-    }
-
-    private function init_request($request_num, $multi_handle, &$requests_map) {
-        $request =& $this->requests[$request_num];
-        $this->addTimer($request);
-
-        $ch = curl_init();
-        $opts_set = curl_setopt_array($ch, $this->buildOptions($request));
-        if(!$opts_set) {
-            echo 'options not set';
-            exit;
-        }
-        curl_multi_add_handle($multi_handle, $ch);
-
-        //add curl handle of a new request to the request map
-        $ch_hash = (string) $ch;
-        $requests_map[$ch_hash] = $request_num;
+            usleep(15);
+        } while ($active);
+        curl_multi_close($this->mh);
     }
 
 
@@ -201,18 +207,6 @@ class Agent
                 curl_multi_remove_handle($mh, $ch);
             }
         }
-    }
-
-
-    private function addTimer(array &$request) { //adds timer object to request
-        $request['timer'] = new ScriptTimer;
-        $request['time'] = false; //default if not overridden by time later
-    }
-
-    private function stopTimer(array &$request) {
-        $elapsed = $request['time'] = $request['timer']->stop();
-        unset($request['timer']);
-        return $elapsed;
     }
 
     private $curle_msgs = [CURLE_OK => 'OK', CURLE_UNSUPPORTED_PROTOCOL => 'UNSUPPORTED_PROTOCOL', CURLE_FAILED_INIT => 'FAILED_INIT', CURLE_URL_MALFORMAT => 'URL_MALFORMAT', CURLE_URL_MALFORMAT_USER => 'URL_MALFORMAT_USER', CURLE_COULDNT_RESOLVE_PROXY => 'COULDNT_RESOLVE_PROXY', CURLE_COULDNT_RESOLVE_HOST => 'COULDNT_RESOLVE_HOST', CURLE_COULDNT_CONNECT => 'COULDNT_CONNECT', CURLE_FTP_WEIRD_SERVER_REPLY => 'FTP_WEIRD_SERVER_REPLY', CURLE_FTP_ACCESS_DENIED => 'FTP_ACCESS_DENIED', CURLE_FTP_USER_PASSWORD_INCORRECT => 'FTP_USER_PASSWORD_INCORRECT', CURLE_FTP_WEIRD_PASS_REPLY => 'FTP_WEIRD_PASS_REPLY', CURLE_FTP_WEIRD_USER_REPLY => 'FTP_WEIRD_USER_REPLY', CURLE_FTP_WEIRD_PASV_REPLY => 'FTP_WEIRD_PASV_REPLY', CURLE_FTP_WEIRD_227_FORMAT => 'FTP_WEIRD_227_FORMAT', CURLE_FTP_CANT_GET_HOST => 'FTP_CANT_GET_HOST', CURLE_FTP_CANT_RECONNECT => 'FTP_CANT_RECONNECT', CURLE_FTP_COULDNT_SET_BINARY => 'FTP_COULDNT_SET_BINARY', CURLE_PARTIAL_FILE => 'PARTIAL_FILE', CURLE_FTP_COULDNT_RETR_FILE => 'FTP_COULDNT_RETR_FILE', CURLE_FTP_WRITE_ERROR => 'FTP_WRITE_ERROR', CURLE_FTP_QUOTE_ERROR => 'FTP_QUOTE_ERROR', CURLE_HTTP_NOT_FOUND => 'HTTP_NOT_FOUND', CURLE_WRITE_ERROR => 'WRITE_ERROR', CURLE_MALFORMAT_USER => 'MALFORMAT_USER', CURLE_FTP_COULDNT_STOR_FILE => 'FTP_COULDNT_STOR_FILE', CURLE_READ_ERROR => 'READ_ERROR', CURLE_OUT_OF_MEMORY => 'OUT_OF_MEMORY', CURLE_OPERATION_TIMEOUTED => 'OPERATION_TIMEOUTED', CURLE_FTP_COULDNT_SET_ASCII => 'FTP_COULDNT_SET_ASCII', CURLE_FTP_PORT_FAILED => 'FTP_PORT_FAILED', CURLE_FTP_COULDNT_USE_REST => 'FTP_COULDNT_USE_REST', CURLE_FTP_COULDNT_GET_SIZE => 'FTP_COULDNT_GET_SIZE', CURLE_HTTP_RANGE_ERROR => 'HTTP_RANGE_ERROR', CURLE_HTTP_POST_ERROR => 'HTTP_POST_ERROR', CURLE_SSL_CONNECT_ERROR => 'SSL_CONNECT_ERROR', CURLE_FTP_BAD_DOWNLOAD_RESUME => 'FTP_BAD_DOWNLOAD_RESUME', CURLE_FILE_COULDNT_READ_FILE => 'FILE_COULDNT_READ_FILE', CURLE_LDAP_CANNOT_BIND => 'LDAP_CANNOT_BIND', CURLE_LDAP_SEARCH_FAILED => 'LDAP_SEARCH_FAILED', CURLE_LIBRARY_NOT_FOUND => 'LIBRARY_NOT_FOUND', CURLE_FUNCTION_NOT_FOUND => 'FUNCTION_NOT_FOUND', CURLE_ABORTED_BY_CALLBACK => 'ABORTED_BY_CALLBACK', CURLE_BAD_FUNCTION_ARGUMENT => 'BAD_FUNCTION_ARGUMENT', CURLE_BAD_CALLING_ORDER => 'BAD_CALLING_ORDER', CURLE_HTTP_PORT_FAILED => 'HTTP_PORT_FAILED', CURLE_BAD_PASSWORD_ENTERED => 'BAD_PASSWORD_ENTERED', CURLE_TOO_MANY_REDIRECTS => 'TOO_MANY_REDIRECTS', CURLE_UNKNOWN_TELNET_OPTION => 'UNKNOWN_TELNET_OPTION', CURLE_TELNET_OPTION_SYNTAX => 'TELNET_OPTION_SYNTAX', CURLE_OBSOLETE => 'OBSOLETE', CURLE_SSL_PEER_CERTIFICATE => 'SSL_PEER_CERTIFICATE', CURLE_GOT_NOTHING => 'GOT_NOTHING', CURLE_SSL_ENGINE_NOTFOUND => 'SSL_ENGINE_NOTFOUND', CURLE_SSL_ENGINE_SETFAILED => 'SSL_ENGINE_SETFAILED', CURLE_SEND_ERROR => 'SEND_ERROR', CURLE_RECV_ERROR => 'RECV_ERROR', CURLE_SHARE_IN_USE => 'SHARE_IN_USE', CURLE_SSL_CERTPROBLEM => 'SSL_CERTPROBLEM', CURLE_SSL_CIPHER => 'SSL_CIPHER', CURLE_SSL_CACERT => 'SSL_CACERT', CURLE_BAD_CONTENT_ENCODING => 'BAD_CONTENT_ENCODING', CURLE_LDAP_INVALID_URL => 'LDAP_INVALID_URL', CURLE_FILESIZE_EXCEEDED => 'FILESIZE_EXCEEDED', CURLE_FTP_SSL_FAILED => 'FTP_SSL_FAILED', CURLE_SSH => 'SSH'

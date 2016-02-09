@@ -8,7 +8,19 @@
 
 namespace CurlX;
 
-
+/**
+ * Class Request
+ * @package CurlX
+ *
+ * @property string $url
+ * @property array $post
+ * @property float $time
+ * @property int $timeout
+ * @property array $options
+ * @property array $headers
+ * @property resource $handle
+ * @property callable[] $listeners
+ */
 class Request implements RequestInterface
 {
     protected $url;
@@ -109,6 +121,7 @@ class Request implements RequestInterface
     {
         $this->stopTimer();
         $this->result = $result;
+        $this->notify();
     }
 
     public function addListener(callable $function)
@@ -122,7 +135,7 @@ class Request implements RequestInterface
     {
         foreach($this->listeners as $listener)
         {
-           call_user_func($listener);
+           call_user_func($listener, $this);
         }
     }
 
