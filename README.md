@@ -1,12 +1,17 @@
 # CurlX
 
-Curl X is a fork of [RollingCurlX](https://github.com/marcushat/RollingCurlX). It aims at making concurrent http requests in PHP as easy as possible. I created this fork to make this wrapper installable via composer, and it is now using PSR-4
+Curl X is a fork of [RollingCurlX](https://github.com/marcushat/RollingCurlX). At fist I only created this fork to make it installable via composer for a project I was working on.
+Now it is a modern, easy-to-use, awesome wrapper for cUrl Multi Handler. Agents and Requests, take a look at how easy everything has become.
 
 ####License
 MIT
 
 #### Requirements
 PHP 5.4+
+
+# Installing
+Installing is easy with composer. Just do
+`composer require half2me/curlx:dev-master`
 
 ##How to Use
 
@@ -15,6 +20,7 @@ All requests after this will be queued until one completes.
 
 ```php
 use CurlX\Agent;
+
 $agent = new Agent(10);
 ```
 
