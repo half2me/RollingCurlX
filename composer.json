@@ -10,8 +10,17 @@
       "CurlX\\": "src"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "CurlX\\Test\\": "tests"
+    }
+  },
   "require": {
     "php": ">=5.4"
+  },
+  "require-dev": {
+    "cakephp/cakephp-codesniffer": "dev-master",
+    "phpunit/phpunit": "~5.2"
   },
   "support": {
     "source": "https://github.com/half2me/curlx"
@@ -19,6 +28,8 @@
   "extra": {
     "installer-name": "CurlX"
   },
+  "minimum-stability": "stable",
+  "prefer-stable": true,
   "authors": [
     {
       "name": "Benjamin Tamasi",
