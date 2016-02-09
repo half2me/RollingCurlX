@@ -19,6 +19,7 @@ namespace CurlX;
  * @property array $options
  * @property array $headers
  * @property resource $handle
+ * @property mixed $response
  * @property callable[] $listeners
  */
 class Request implements RequestInterface
@@ -33,6 +34,8 @@ class Request implements RequestInterface
     protected $curlHandle;
     protected $headers = [];
     protected $options = [];
+    protected $success;
+    protected $response;
 
     private function camelize($str)
     {
@@ -104,12 +107,12 @@ class Request implements RequestInterface
 
     public function startTimer()
     {
-
+        $this->startTime = microtime(true);
     }
 
-    private function stopTimer()
+    public function stopTimer()
     {
-
+        $this->endTime = microtime(true);
     }
 
     public function getResult()
@@ -121,6 +124,16 @@ class Request implements RequestInterface
     {
         $this->stopTimer();
         $this->result = $result;
+
+        $requestInfo = curl_getinfo($this->curlHandle);
+
+        if(curl_errno($this->curlHandle) !== 0 || intval($requestInfo['http_code']) !== 200) {
+            $this->success = false;
+        } else {
+            $this->success = true;
+            $this->response = curl_multi_getcontent($this->ch);
+        }
+
         $this->notify();
     }
 
@@ -176,5 +189,10 @@ class Request implements RequestInterface
     function getOptions()
     {
         return $this->options;
+    }
+
+    function getResponse()
+    {
+        return $this->response;
     }
 }

@@ -20,6 +20,7 @@ namespace CurlX;
  * @property array $headers
  * @property resource $handle
  * @property callable[] $listeners
+ * @property mixed $response
  */
 interface RequestInterface
 {
@@ -34,6 +35,8 @@ interface RequestInterface
     function getTime();
 
     function startTimer();
+
+    function stopTimer();
 
     function getResult();
 
