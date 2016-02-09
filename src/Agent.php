@@ -51,7 +51,7 @@ class Agent
      */
     public function setOptions(array $options)
     {
-        if(!empty($options)) {
+        if (!empty($options)) {
             $this->options += $options;
         }
     }
@@ -98,10 +98,16 @@ class Agent
     public function addRequest(RequestInterface $request, $setGlobals = false)
     {
         $this->requests = $request;
-        if($setGlobals) {
-            if(!empty($this->post)) $request->post = $this->post;
-            if(!empty($this->headers)) $request->headers = $this->headers;
-            if(!empty($this->options)) $request->options = $this->options;
+        if ($setGlobals) {
+            if (!empty($this->post)) {
+                $request->post = $this->post;
+            }
+            if (!empty($this->headers)) {
+                $request->headers = $this->headers;
+            }
+            if (!empty($this->options)) {
+                $request->options = $this->options;
+            }
             $request->timeout = $this->timeout;
         }
         return $request;
@@ -114,8 +120,8 @@ class Agent
      */
     private function getRequestByHandle($handle)
     {
-        foreach($this->requests as $request) {
-            if($request->handle === $handle) {
+        foreach ($this->requests as $request) {
+            if ($request->handle === $handle) {
                 return $request;
             }
         }
@@ -128,22 +134,24 @@ class Agent
     {
         $this->mh = curl_multi_init();
 
-        foreach($this->requests as $key => $request) {
+        foreach ($this->requests as $key => $request) {
             curl_multi_add_handle($this->mh, $request->handle);
             $request->startTimer();
-            if($key >= $this->maxConcurrent) break;
+            if ($key >= $this->maxConcurrent) {
+                break;
+            }
         }
 
-        do{
-            do{
+        do {
+            do {
                 $mh_status = curl_multi_exec($this->mh, $active);
-            } while($mh_status == CURLM_CALL_MULTI_PERFORM);
-            if($mh_status != CURLM_OK) {
+            } while ($mh_status == CURLM_CALL_MULTI_PERFORM);
+            if ($mh_status != CURLM_OK) {
                 break;
             }
 
             // a request just completed, find out which one
-            while($completed = curl_multi_info_read($this->mh)) {
+            while ($completed = curl_multi_info_read($this->mh)) {
                 $request = $this->getRequestByHandle($completed['handle']);
                 $request->callback($completed);
                 curl_multi_remove_handle($this->mh, $completed['handle']);
@@ -156,4 +164,3 @@ class Agent
         curl_multi_close($this->mh);
     }
 }
-?>

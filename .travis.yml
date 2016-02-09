@@ -26,4 +26,4 @@ after_success:
   - codecov
 
 notifications:
-  email: falsex
+  email: false

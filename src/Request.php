@@ -46,19 +46,22 @@ class Request implements RequestInterface
     {
         $c = $this->camelize($name);
         $m = "set$c";
-        if(method_exists($this, $m)) {
+        if (method_exists($this, $m)) {
             return $this->$m($value);
+        } else {
+            user_error("undefined property $name");
         }
-        else user_error("undefined property $name");
     }
 
-    public function __get($name) {
+    public function __get($name)
+    {
         $c = $this->camelize($name);
         $m = "get$c";
-        if(method_exists($this, $m)) {
+        if (method_exists($this, $m)) {
             return $this->$m();
+        } else {
+            user_error("undefined property $name");
         }
-        else user_error("undefined property $name");
     }
 
     /**
@@ -90,7 +93,7 @@ class Request implements RequestInterface
     {
         $this->post += $postValues;
         $this->options[CURLOPT_POST] = 1;
-        if(!empty($this->post)) {
+        if (!empty($this->post)) {
             $this->options[CURLOPT_POSTFIELDS] = http_build_query($this->post);
         }
     }
@@ -127,7 +130,7 @@ class Request implements RequestInterface
 
         $requestInfo = curl_getinfo($this->curlHandle);
 
-        if(curl_errno($this->curlHandle) !== 0 || intval($requestInfo['http_code']) !== 200) {
+        if (curl_errno($this->curlHandle) !== 0 || intval($requestInfo['http_code']) !== 200) {
             $this->success = false;
         } else {
             $this->success = true;
@@ -139,16 +142,15 @@ class Request implements RequestInterface
 
     public function addListener(callable $function)
     {
-        if(is_callable($function)) {
+        if (is_callable($function)) {
             $this->listeners += $function;
         }
     }
 
     protected function notify()
     {
-        foreach($this->listeners as $listener)
-        {
-           call_user_func($listener, $this);
+        foreach ($this->listeners as $listener) {
+            call_user_func($listener, $this);
         }
     }
 
@@ -162,7 +164,7 @@ class Request implements RequestInterface
 
     public function getHandle()
     {
-        if(!isset($this->curlHandle)) {
+        if (!isset($this->curlHandle)) {
             $this->curlHandle = curl_init($this->url);
             curl_setopt_array($this->curlHandle, $this->options);
         }
