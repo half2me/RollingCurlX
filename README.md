@@ -10,7 +10,7 @@ Now it is a modern, easy-to-use, awesome wrapper for cUrl Multi Handler. With Ag
 MIT
 
 #### Requirements
-PHP 5.4+
+PHP 5.6+
 
 # Installing
 Installing is easy with composer. Just do
