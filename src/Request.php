@@ -37,6 +37,8 @@ class Request implements RequestInterface
     protected $success;
     protected $response;
 
+    // TODO: make __clone()
+
     /**
      * Camelizes a string
      * @param string $str string to camelize
@@ -91,6 +93,13 @@ class Request implements RequestInterface
         // Defaults
         $this->options[CURLOPT_RETURNTRANSFER] = true;
         $this->options[CURLOPT_NOSIGNAL] = 1;
+    }
+
+    public function __destruct()
+    {
+        if(isset($this->handle)) {
+            curl_close($this->handle);
+        }
     }
 
     /**
@@ -194,13 +203,13 @@ class Request implements RequestInterface
 
     /**
      * This gets called by an agent when a request has completed
-     * @param mixed $result result
+     * @param mixed $multiInfo result
      * @return void
      */
-    public function callBack($result)
+    public function callBack($mutliInfo)
     {
         $this->stopTimer();
-        $this->result = $result;
+        $this->result = $mutliInfo['result'];
 
         $requestInfo = curl_getinfo($this->curlHandle);
 
@@ -208,7 +217,7 @@ class Request implements RequestInterface
             $this->success = false;
         } else {
             $this->success = true;
-            $this->response = curl_multi_getcontent($this->ch);
+            $this->response;
         }
 
         $this->notify();

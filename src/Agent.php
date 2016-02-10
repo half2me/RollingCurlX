@@ -50,6 +50,8 @@ class Agent
      */
     protected $mh;
 
+    protected $requestCounter = 0;
+
     /**
      * Agent constructor.
      * @param int $max_concurrent max current requests
@@ -58,6 +60,14 @@ class Agent
     {
         $this->setMaxConcurrent($max_concurrent);
         $this->defaultRequest = new Request();
+    }
+
+    function __destruct()
+    {
+        foreach($this->requests as $request) {
+            curl_multi_remove_handle($this->mh, $request->handle);
+        }
+        curl_multi_close($this->mh);
     }
 
     /**
@@ -139,10 +149,10 @@ class Agent
 
     /**
      * Returns the Request object for a give cUrl handle
-     * @param mixed $handle
-     * @return RequestInterface request with handle
+     * @param resource $handle cUrl handle
+     * @return RequestInterface Request with handle
      */
-    private function getRequestByHandle($handle)
+    protected function getRequestByHandle($handle)
     {
         foreach ($this->requests as $request) {
             if ($request->handle === $handle) {
@@ -158,33 +168,36 @@ class Agent
     {
         $this->mh = curl_multi_init();
 
+        $this->defaultRequest->startTimer();
+
         foreach ($this->requests as $key => $request) {
+            if ($this->requestCounter >= $this->maxConcurrent) {
+                break;
+            }
             curl_multi_add_handle($this->mh, $request->handle);
             $request->startTimer();
-            if ($key >= $this->maxConcurrent) {
-                break;
-            }
+            $this->requestCounter++;
         }
 
+        // Start the request
         do {
-            do {
-                $mh_status = curl_multi_exec($this->mh, $active);
-            } while ($mh_status == CURLM_CALL_MULTI_PERFORM);
-            if ($mh_status != CURLM_OK) {
-                break;
+            $mrc = curl_multi_exec($this->mh, $active);
+        } while ($mrc == CURLM_CALL_MULTI_PERFORM);
+
+        while ($active && $mrc == CURLM_OK) {
+            while (curl_multi_exec($this->mh, $active) === CURLM_CALL_MULTI_PERFORM) ;
+
+            if (curl_multi_select($this->mh) != -1) {
+                do {
+                    $mrc = curl_multi_exec($this->mh, $active);
+                    if ($mrc == CURLM_OK) {
+                        while ($info = curl_multi_info_read($this->mh)) {
+                            $this->getRequestByHandle($info['handle'])->callBack($info);
+                        }
+                    }
+                } while ($mrc == CURLM_CALL_MULTI_PERFORM);
             }
-
-            // a request just completed, find out which one
-            while ($completed = curl_multi_info_read($this->mh)) {
-                $request = $this->getRequestByHandle($completed['handle']);
-                $request->callback($completed);
-                curl_multi_remove_handle($this->mh, $completed['handle']);
-
-                // TODO: Add the next request to the queue
-            }
-
-            usleep(15);
-        } while ($active);
-        curl_multi_close($this->mh);
+        }
+        $this->defaultRequest->stopTimer();
     }
 }
