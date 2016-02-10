@@ -165,7 +165,9 @@ class Request implements RequestInterface
      */
     public function getTime()
     {
-        return $this->endTime - $this->startTime;
+        if(isset($this->startTime) && isset($this->endTime)) {
+            return $this->endTime - $this->startTime;
+        }
     }
 
     /**
@@ -203,15 +205,18 @@ class Request implements RequestInterface
     public function callBack($mutliInfo)
     {
         $this->stopTimer();
-        $this->result = $mutliInfo['result'];
+        if(array_key_exists('result', $mutliInfo)) {
+            $this->result = $mutliInfo['result'];
+        }
 
-        $requestInfo = curl_getinfo($this->curlHandle);
-
-        if (curl_errno($this->curlHandle) !== 0 || intval($requestInfo['http_code']) !== 200) {
-            $this->success = false;
-        } else {
-            $this->success = true;
-            $this->response;
+        if(isset($this->curlHandle)) {
+            $requestInfo = curl_getinfo($this->curlHandle);
+            if (curl_errno($this->curlHandle) !== 0 || intval($requestInfo['http_code']) !== 200) {
+                $this->success = false;
+            } else {
+                $this->success = true;
+                $this->response;
+            }
         }
 
         $this->notify();
@@ -225,7 +230,7 @@ class Request implements RequestInterface
     public function addListener(callable $function)
     {
         if (is_callable($function)) {
-            $this->listeners += $function;
+            $this->listeners[] = $function;
         }
     }
 

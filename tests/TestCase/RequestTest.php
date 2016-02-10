@@ -39,5 +39,51 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $request->post_data = $post;
         $this->assertArrayHasKey(CURLOPT_POST, $request->options);
         $this->assertEquals($post, $request->post_data);
+
+        // Add more post fields
+        $post2 = ['otherdata' => 'newvalue', 'username' => 'stacey'];
+        $request->post_data = $post2;
+        $this->assertArrayHasKey(CURLOPT_POST, $request->options);
+        $this->assertEquals($post + $post2, $request->post_data);
+    }
+
+    public function testTimer()
+    {
+        $request = new Request();
+
+        $this->assertNull($request->time);
+
+        $request->startTimer();
+        $this->assertNull($request->time);
+
+        $request->stopTimer();
+        $this->assertNotNull($request->time);
+        $this->assertTrue($request->time >= 0);
+    }
+
+    public function testNotify()
+    {
+        $request = new Request();
+        $called1 = false;
+        $called2 = false;
+        $r1 = null;
+        $r2 = null;
+
+        $request->addListener(function($var) use (&$called1, &$r1) {
+            $called1 = true;
+            $r1 = $var;
+        });
+
+        $request->addListener(function($var) use (&$called2, &$r2) {
+            $called2 = true;
+            $r2 = $var;
+        });
+
+        $request->callBack([]);
+
+        $this->assertTrue($called1, 'Callback 1 was not notified on request completion!');
+        $this->assertInstanceOf('CurlX\RequestInterface', $r1, 'Callback 1 did not receive the request object');
+        $this->assertTrue($called2, 'Callback 2 was not notified on request completion!');
+        $this->assertInstanceOf('CurlX\RequestInterface', $r2, 'Callback 2 did not receive the request object');
     }
 }
