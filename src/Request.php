@@ -124,6 +124,7 @@ class Request implements RequestInterface
     {
         if (!filter_var($url, FILTER_VALIDATE_URL) === false) {
             $this->url = $url;
+            $this->updateHandle();
         }
     }
 
@@ -148,6 +149,7 @@ class Request implements RequestInterface
         if (!empty($this->post)) {
             $this->options[CURLOPT_POSTFIELDS] = http_build_query($this->post);
         }
+        $this->updateHandle();
     }
 
     /**
@@ -255,6 +257,7 @@ class Request implements RequestInterface
         if ($timeout > 0) {
             $this->timeout = $timeout;
             $this->options[CURLOPT_TIMEOUT_MS] = $this->timeout;
+            $this->updateHandle();
         }
     }
 
@@ -275,10 +278,17 @@ class Request implements RequestInterface
     {
         if (!isset($this->curlHandle)) {
             $this->curlHandle = curl_init($this->url);
-            curl_setopt_array($this->curlHandle, $this->options);
+            $this->updateHandle();
         }
 
         return $this->curlHandle;
+    }
+
+    protected function updateHandle()
+    {
+        if(isset($this->handle)) {
+            curl_setopt_array($this->curlHandle, $this->options);
+        }
     }
 
     /**
@@ -290,6 +300,7 @@ class Request implements RequestInterface
     {
         $this->headers = $headers + $this->headers;
         $this->options[CURLOPT_HTTPHEADER] = $this->normalize($this->headers);
+        $this->updateHandle();
     }
 
     /**
@@ -309,6 +320,7 @@ class Request implements RequestInterface
     public function setOptions(array $options)
     {
         $this->options = $options + $this->options;
+        $this->updateHandle();
     }
 
     /**

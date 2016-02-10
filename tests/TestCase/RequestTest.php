@@ -128,4 +128,15 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $this->assertArrayHasKey(CURLOPT_BINARYTRANSFER, $request->options);
         $this->assertArraySubset($opt2 + $opt, $request->options);
     }
+
+    public function testHandle()
+    {
+        $request = new Request('http://example.com');
+        $ch = $request->handle;
+
+        $this->assertNotNull($ch);
+        $info = curl_getinfo($ch);
+
+        $this->assertEquals($request->url, $info['url']);
+    }
 }
