@@ -143,7 +143,7 @@ class Request implements RequestInterface
      */
     public function setPostData(array $postData)
     {
-        $this->post += $postData;
+        $this->post = $postData + $this->post;
         $this->options[CURLOPT_POST] = 1;
         if (!empty($this->post)) {
             $this->options[CURLOPT_POSTFIELDS] = http_build_query($this->post);
@@ -288,8 +288,8 @@ class Request implements RequestInterface
      */
     public function setHeaders(array $headers)
     {
-        $this->headers += $this->normalize($headers);
-        $this->options[CURLOPT_HTTPHEADER] = $this->headers;
+        $this->headers = $headers + $this->headers;
+        $this->options[CURLOPT_HTTPHEADER] = $this->normalize($this->headers);
     }
 
     /**
@@ -308,7 +308,7 @@ class Request implements RequestInterface
      */
     public function setOptions(array $options)
     {
-        $this->options += $options;
+        $this->options = $options + $this->options;
     }
 
     /**

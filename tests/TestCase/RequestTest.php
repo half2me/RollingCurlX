@@ -44,7 +44,7 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $post2 = ['otherdata' => 'newvalue', 'username' => 'stacey'];
         $request->post_data = $post2;
         $this->assertArrayHasKey(CURLOPT_POST, $request->options);
-        $this->assertEquals($post + $post2, $request->post_data);
+        $this->assertEquals($post2 + $post, $request->post_data);
     }
 
     public function testTimer()
@@ -85,5 +85,47 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf('CurlX\RequestInterface', $r1, 'Callback 1 did not receive the request object');
         $this->assertTrue($called2, 'Callback 2 was not notified on request completion!');
         $this->assertInstanceOf('CurlX\RequestInterface', $r2, 'Callback 2 did not receive the request object');
+    }
+
+    public function testHeaders()
+    {
+        $request = new Request();
+
+        $header = ['a' => 'aaa', 'b' => 'bbb'];
+        $normalHeader = ['a: aaa', 'b: bbb'];
+
+        $request->headers = $header;
+        $this->assertEquals($header, $request->headers);
+
+        $this->assertArrayHasKey(CURLOPT_HTTPHEADER, $request->options);
+        $this->assertEquals($normalHeader, $request->options[CURLOPT_HTTPHEADER]);
+
+        $header2 = ['b' => 'BBB', 'c' => 'CCC'];
+        $normalOfBothHeaders = ['b: BBB', 'c: CCC', 'a: aaa'];
+        $request->headers = $header2;
+        $this->assertEquals($header2 + $header, $request->headers);
+
+        $this->assertArrayHasKey(CURLOPT_HTTPHEADER, $request->options);
+        $this->assertArraySubset($normalOfBothHeaders, $request->options[CURLOPT_HTTPHEADER]);
+    }
+
+    public function testOptions()
+    {
+        $request = new Request();
+
+        $opt = [CURLOPT_CRLF => 'test', CURLOPT_AUTOREFERER => 'test'];
+        $request->options = $opt;
+
+        $this->assertArrayHasKey(CURLOPT_CRLF, $request->options);
+        $this->assertArrayHasKey(CURLOPT_AUTOREFERER, $request->options);
+        $this->assertArraySubset($opt, $request->options);
+
+        $opt2 = [CURLOPT_AUTOREFERER => 'no-test', CURLOPT_BINARYTRANSFER => 'no-test'];
+        $request->options = $opt2;
+
+        $this->assertArrayHasKey(CURLOPT_CRLF, $request->options);
+        $this->assertArrayHasKey(CURLOPT_AUTOREFERER, $request->options);
+        $this->assertArrayHasKey(CURLOPT_BINARYTRANSFER, $request->options);
+        $this->assertArraySubset($opt2 + $opt, $request->options);
     }
 }
