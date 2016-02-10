@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: lejla
- * Date: 2016.02.09.
- * Time: 17:34
- */
 
 namespace CurlX;
 
@@ -13,7 +7,7 @@ namespace CurlX;
  * @package CurlX
  *
  * @property string $url url of the Request
- * @property array $post array of post data
+ * @property array $post_data array of post data
  * @property float $time running time of the request
  * @property int $timeout time (in msec) after which the request will be aborted
  * @property array $options cUrl options of the request
