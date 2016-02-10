@@ -27,6 +27,7 @@ interface RequestInterface
     /**
      * Setter for the url field
      * @param string $url url
+     * @return void
      */
     public function setUrl($url);
 
@@ -39,6 +40,7 @@ interface RequestInterface
     /**
      * Setter for the post data array
      * @param array $postData post data
+     * @return void
      */
     public function setPostData(array $postData);
 
@@ -50,11 +52,13 @@ interface RequestInterface
 
     /**
      * Start the request's internal timer
+     * @return void
      */
     public function startTimer();
 
     /**
      * Stops the request's internal timer
+     * @return void
      */
     public function stopTimer();
 
@@ -67,18 +71,21 @@ interface RequestInterface
     /**
      * This gets called by an agent when a request has completed
      * @param mixed $result result
+     * @return void
      */
     public function callBack($result);
 
     /**
      * Add a listener that gets notified when the Request has completed
      * @param callable $function callback function
+     * @return void
      */
     public function addListener(callable $function);
 
     /**
      * Set a timeout value for the request
      * @param float $timeout timeout (msec)
+     * @return void
      */
     public function setTimeout($timeout);
 
@@ -97,6 +104,7 @@ interface RequestInterface
     /**
      * Add headers to the request
      * @param array $headers headers in ['key' => 'value] format
+     * @return void
      */
     public function setHeaders(array $headers);
 
@@ -109,6 +117,7 @@ interface RequestInterface
     /**
      * Add cUrl options to the request
      * @param array $options options in ['key' => 'value'] format
+     * @return void
      */
     public function setOptions(array $options);
 
@@ -117,4 +126,10 @@ interface RequestInterface
      * @return array options in ['key' => 'value'] format
      */
     public function getOptions();
+
+    /**
+     * Get the response for the finished query
+     * @return mixed response
+     */
+    public function getResponse();
 }
