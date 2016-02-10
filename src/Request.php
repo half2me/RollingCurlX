@@ -38,25 +38,37 @@ class Request implements RequestInterface
     protected $response;
 
     /**
-     * @param $str
-     * @return mixed
+     * Camelizes a string
+     * @param string $str string to camelize
+     * @return string camelized string
      */
-    private function camelize($str)
+    protected function camelize($str)
     {
         return str_replace('_', '', ucwords($str, '_'));
     }
 
+    /**
+     * Magic setter function
+     * @param string $name attribute to set
+     * @param mixed $value the new value
+     * @return void
+     */
     public function __set($name, $value)
     {
         $c = $this->camelize($name);
         $m = "set$c";
         if (method_exists($this, $m)) {
-            return $this->$m($value);
+            $this->$m($value);
         } else {
             user_error("undefined property $name");
         }
     }
 
+    /**
+     * Magic getter function
+     * @param string $name of the attribute to get
+     * @return mixed the attribute's value
+     */
     public function __get($name)
     {
         $c = $this->camelize($name);
@@ -87,11 +99,11 @@ class Request implements RequestInterface
      * @param array $array array to normalize
      * @return array normalized array
      */
-    private function normalize(array $array)
+    protected function normalize(array $array)
     {
         $normalized = [];
-        foreach($array as $key => $value) {
-            if(is_string($key)) {
+        foreach ($array as $key => $value) {
+            if (is_string($key)) {
                 $normalized[] = $key . ': ' . $value;
             } else {
                 $normalized[] = $value;
@@ -126,9 +138,9 @@ class Request implements RequestInterface
      * @param array $postData post data
      * @return void
      */
-    public function setPostData(array $postValues)
+    public function setPostData(array $postData)
     {
-        $this->post += $postValues;
+        $this->post += $postData;
         $this->options[CURLOPT_POST] = 1;
         if (!empty($this->post)) {
             $this->options[CURLOPT_POSTFIELDS] = http_build_query($this->post);
