@@ -2,27 +2,52 @@
 
 namespace CurlX;
 
+/**
+ * Class Agent
+ * @package CurlX
+ *
+ * @property int $max_concurrent The maximum number of simultaneous connections allowed
+ * @property int $maxConcurrent The maximum number of simultaneous connections allowed
+ * @property string $url default url for requests
+ * @property array $post array of default post data for requests
+ * @property float $time running time of the agent
+ * @property int $timeout default timeout (in msec) for requests
+ * @property array $options default cUrl options for requests
+ * @property array $headers default headers for requests
+ * @property resource $handle cUrl Multi Handle
+ * @property callable[] $listeners array of registered listeners which will be registered to newly created requests
+ * @property array $response responses of the individual requests
+ */
 class Agent
 {
-    protected $maxConcurrent = 0; //max. number of simultaneous connections allowed
-    protected $options = []; //shared cURL options
-    protected $headers = []; //shared cURL request headers
-    protected $timeout = 5000; //timeout used for curl_multi_select function
-    protected $post = [];
-    protected $startTime;
-    protected $endTime;
-
-    // TODO: normalize headers key => value is key: value
+    /**
+     * @var array results
+     */
+    protected $result;
 
     /**
-     * @var RequestInterface[] $requests array of Requests
+     * @var array responses
+     */
+    protected $response;
+
+    /**
+     * @var int The maximum number of simultaneous connections allowed
+     */
+    protected $maxConcurrent = 0;
+
+    /**
+     * @var RequestInterface[] array of Requests
      */
     protected $requests;
 
     /**
-     * @var callable[] $listeners array of listeners
+     * @var Request default request
      */
-    protected $listeners = [];
+    protected $defaultRequest;
+
+    /**
+     * @var resource cUrl Multi Handle
+     */
     protected $mh;
 
     /**
@@ -32,6 +57,40 @@ class Agent
     function __construct($max_concurrent = 10)
     {
         $this->setMaxConcurrent($max_concurrent);
+        $this->defaultRequest = new Request();
+    }
+
+    /**
+     * Magic setter function
+     * @param string $name attribute to set
+     * @param mixed $value the new value
+     * @return void
+     */
+    public function __set($name, $value)
+    {
+        $c = Request::camelize($name);
+        $m = "set$c";
+        if (method_exists($this, $m)) {
+            $this->$m($value);
+        } else {
+            $this->defaultRequest->__set($name, $value);
+        }
+    }
+
+    /**
+     * Magic getter function
+     * @param string $name of the attribute to get
+     * @return mixed the attribute's value
+     */
+    public function __get($name)
+    {
+        $c = Request::camelize($name);
+        $m = "get$c";
+        if (method_exists($this, $m)) {
+            return $this->$m();
+        } else {
+            return $this->defaultRequest->__get($name);
+        }
     }
 
     /**
@@ -46,37 +105,12 @@ class Agent
     }
 
     /**
-     * Set global cUrl options
-     * @param array $options array of options
+     * Get the currently set value of maxConcurrent
+     * @return int maximum number of concurrent requests
      */
-    public function setOptions(array $options)
+    public function getMaxConcurrent()
     {
-        if (!empty($options)) {
-            $this->options += $options;
-        }
-    }
-
-    /**
-     * Set global cUrl headers
-     * @param array $headers headers
-     */
-    public function setHeaders(array $headers)
-    {
-        if (!empty($headers)) {
-            $this->headers += $headers;
-        }
-    }
-
-    /**
-     * Set global timeout
-     * If individual requests don't have a timeout value, this will be used
-     * @param int $timeout timeout in msec
-     */
-    public function setTimeout($timeout)
-    {
-        if ($timeout > 0) {
-            $this->timeout = $timeout; // to seconds
-        }
+        return $this->maxConcurrent;
     }
 
     /**
@@ -87,7 +121,9 @@ class Agent
      */
     public function newRequest($url = null)
     {
-        return $this->addRequest(new Request($url), true);
+        $request = clone $this->defaultRequest;
+        $request->url = $url;
+        return $this->addRequest($request);
     }
 
     /**
@@ -95,21 +131,9 @@ class Agent
      * @param RequestInterface $request the request to add
      * @return RequestInterface
      */
-    public function addRequest(RequestInterface $request, $setGlobals = false)
+    public function addRequest(RequestInterface $request)
     {
-        $this->requests = $request;
-        if ($setGlobals) {
-            if (!empty($this->post)) {
-                $request->post = $this->post;
-            }
-            if (!empty($this->headers)) {
-                $request->headers = $this->headers;
-            }
-            if (!empty($this->options)) {
-                $request->options = $this->options;
-            }
-            $request->timeout = $this->timeout;
-        }
+        $this->requests[] = $request;
         return $request;
     }
 

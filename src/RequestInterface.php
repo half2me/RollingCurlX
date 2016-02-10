@@ -6,13 +6,13 @@ namespace CurlX;
  * Interface RequestInterface
  * @package CurlX
  *
- * @property string $url Url of the Request
+ * @property string $url url of the Request
  * @property array $post array of post data
  * @property float $time running time of the request
  * @property int $timeout time (in msec) after which the request will be aborted
- * @property array $options CURL options of the request
+ * @property array $options cUrl options of the request
  * @property array $headers headers of the request
- * @property resource $handle CURL handle of the request
+ * @property resource $handle cUrl handle of the request
  * @property callable[] $listeners array of registered listeners which will be called upon when request finishes
  * @property mixed $response curl's response
  */

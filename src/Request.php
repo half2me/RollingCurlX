@@ -12,15 +12,15 @@ namespace CurlX;
  * Class Request
  * @package CurlX
  *
- * @property string $url
- * @property array $post
- * @property float $time
- * @property int $timeout
- * @property array $options
- * @property array $headers
- * @property resource $handle
- * @property mixed $response
- * @property callable[] $listeners
+ * @property string $url url of the Request
+ * @property array $post array of post data
+ * @property float $time running time of the request
+ * @property int $timeout time (in msec) after which the request will be aborted
+ * @property array $options cUrl options of the request
+ * @property array $headers headers of the request
+ * @property resource $handle cUrl handle of the request
+ * @property callable[] $listeners array of registered listeners which will be called upon when request finishes
+ * @property mixed $response curl's response
  */
 class Request implements RequestInterface
 {
@@ -42,7 +42,7 @@ class Request implements RequestInterface
      * @param string $str string to camelize
      * @return string camelized string
      */
-    protected function camelize($str)
+    public static function camelize($str)
     {
         return str_replace('_', '', ucwords($str, '_'));
     }
@@ -55,7 +55,7 @@ class Request implements RequestInterface
      */
     public function __set($name, $value)
     {
-        $c = $this->camelize($name);
+        $c = static::camelize($name);
         $m = "set$c";
         if (method_exists($this, $m)) {
             $this->$m($value);
@@ -71,7 +71,7 @@ class Request implements RequestInterface
      */
     public function __get($name)
     {
-        $c = $this->camelize($name);
+        $c = static::camelize($name);
         $m = "get$c";
         if (method_exists($this, $m)) {
             return $this->$m();
