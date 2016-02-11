@@ -126,4 +126,38 @@ class RequestTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals($request->url, $info['url']);
     }
+
+    public function testClone()
+    {
+        // We make a Request object and set parameters
+        $request = new Request('http://url.url');
+        $request->addListener(function(RequestInterface $r) {});
+        $request->post_data = ['a' => 'a'];
+        $request->headers = ['a' => 'a'];
+        $request->timeout = 5;
+        $request->options = [CURLOPT_BINARYTRANSFER => true];
+
+        // We clone it, and overwrite the parameters
+        $request2 = clone $request;
+        $request2->url = 'http://url2.url2';
+        $iWasCalled = false;
+        $request2->addListener(function(RequestInterface $r) use (&$iWasCalled) {
+            $iWasCalled = true;
+        });
+        $request2->post_data = ['a' => 'A', 'b' => 'B'];
+        $request2->headers = ['a' => 'A', 'b' => 'B'];
+        $request2->timeout = 10;
+        $request2->options = [CURLOPT_BINARYTRANSFER => false];
+
+        // Modifying the new object should not change values of the original one
+        $this->assertEquals('http://url.url', $request->url);
+        $this->assertEquals(['a' => 'a'], $request->post_data);
+        $this->assertEquals(['a' => 'a'], $request->headers);
+        $this->assertEquals(5, $request->timeout);
+        $this->assertArraySubset([CURLOPT_BINARYTRANSFER => true], $request->options);
+
+        // Running the first Request should not notify the cloned Request's listeners
+        $request->callBack([]);
+        $this->assertFalse($iWasCalled);
+    }
 }

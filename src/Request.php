@@ -30,8 +30,6 @@ class Request implements RequestInterface
     protected $success;
     protected $response;
 
-    // TODO: make __clone()
-
     /**
      * Camelizes a string
      * @param string $str string to camelize
@@ -92,6 +90,16 @@ class Request implements RequestInterface
     {
         if(isset($this->handle)) {
             curl_close($this->handle);
+        }
+    }
+
+    /**
+     * Clone the object
+     */
+    public function __clone()
+    {
+        if(isset($this->handle)) {
+            $this->handle = curl_copy_handle($this->handle);
         }
     }
 
@@ -192,7 +200,7 @@ class Request implements RequestInterface
         if(isset($this->curlHandle)) {
             $requestInfo = curl_getinfo($this->curlHandle);
 
-            $this->succes = curl_errno($this->curlHandle) === 0 || intval($requestInfo['http_code']) === 200;
+            $this->success = curl_errno($this->curlHandle) === 0 || intval($requestInfo['http_code']) === 200;
         }
 
         $this->notify();
