@@ -125,6 +125,10 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $info = curl_getinfo($ch);
 
         $this->assertEquals($request->url, $info['url']);
+
+        // Test default cUrl options
+        $this->assertArrayHasKey(CURLOPT_RETURNTRANSFER, $request->options);
+        $this->assertEquals($request->options[CURLOPT_RETURNTRANSFER], true);
     }
 
     public function testClone()

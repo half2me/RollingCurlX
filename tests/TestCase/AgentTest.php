@@ -30,9 +30,13 @@ class AgentTest extends PHPUnit_Framework_TestCase
         });
 
         $r1 = $agent->newRequest('https://google.com');
+        $r2 = $agent->newRequest('https://google.com');
+        $r3 = $agent->newRequest('https://google.com');
 
         $agent->execute();
 
-        $this->assertEquals(1, $called);
+        $this->assertEquals(3, $called);
+
+        var_dump($r1->response);
     }
 }
