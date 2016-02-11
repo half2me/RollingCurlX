@@ -10,6 +10,7 @@ namespace CurlX\Tests;
 
 
 use CurlX\Request;
+use CurlX\RequestInterface;
 use PHPUnit_Framework_TestCase;
 
 class RequestTest extends PHPUnit_Framework_TestCase
@@ -47,20 +48,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($post2 + $post, $request->post_data);
     }
 
-    public function testTimer()
-    {
-        $request = new Request();
-
-        $this->assertNull($request->time);
-
-        $request->startTimer();
-        $this->assertNull($request->time);
-
-        $request->stopTimer();
-        $this->assertNotNull($request->time);
-        $this->assertTrue($request->time >= 0);
-    }
-
     public function testNotify()
     {
         $request = new Request();
@@ -69,12 +56,12 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $r1 = null;
         $r2 = null;
 
-        $request->addListener(function($var) use (&$called1, &$r1) {
+        $request->addListener(function(RequestInterface $var) use (&$called1, &$r1) {
             $called1 = true;
             $r1 = $var;
         });
 
-        $request->addListener(function($var) use (&$called2, &$r2) {
+        $request->addListener(function(RequestInterface $var) use (&$called2, &$r2) {
             $called2 = true;
             $r2 = $var;
         });

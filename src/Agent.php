@@ -60,6 +60,7 @@ class Agent
     {
         $this->setMaxConcurrent($max_concurrent);
         $this->defaultRequest = new Request();
+        $this->mh = curl_multi_init();
     }
 
     function __destruct()
@@ -166,16 +167,11 @@ class Agent
      */
     public function execute()
     {
-        $this->mh = curl_multi_init();
-
-        $this->defaultRequest->startTimer();
-
         foreach ($this->requests as $key => $request) {
             if ($this->requestCounter >= $this->maxConcurrent) {
                 break;
             }
             curl_multi_add_handle($this->mh, $request->handle);
-            $request->startTimer();
             $this->requestCounter++;
         }
 
@@ -198,6 +194,10 @@ class Agent
                 } while ($mrc == CURLM_CALL_MULTI_PERFORM);
             }
         }
-        $this->defaultRequest->stopTimer();
+    }
+
+    public function addListener(callable $function)
+    {
+        $this->defaultRequest->addListener($function);
     }
 }

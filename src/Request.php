@@ -8,20 +8,19 @@ namespace CurlX;
  *
  * @property string $url url of the Request
  * @property array $post_data array of post data
- * @property float $time running time of the request
+ * @property float $total_time running time of the request
  * @property int $timeout time (in msec) after which the request will be aborted
  * @property array $options cUrl options of the request
  * @property array $headers headers of the request
  * @property resource $handle cUrl handle of the request
  * @property callable[] $listeners array of registered listeners which will be called upon when request finishes
  * @property mixed $response curl's response
+ * @property mixed $result curl result
  */
 class Request implements RequestInterface
 {
     protected $url;
     protected $post = [];
-    protected $startTime;
-    protected $endTime;
     protected $result;
     protected $listeners = [];
     protected $timeout;
@@ -167,27 +166,10 @@ class Request implements RequestInterface
      */
     public function getTime()
     {
-        if(isset($this->startTime) && isset($this->endTime)) {
-            return $this->endTime - $this->startTime;
+        if (isset($this->handle)) {
+            return curl_getinfo($this->handle)['total_time'];
         }
-    }
-
-    /**
-     * Start the request's internal timer
-     * @return void
-     */
-    public function startTimer()
-    {
-        $this->startTime = microtime(true);
-    }
-
-    /**
-     * Stops the request's internal timer
-     * @return void
-     */
-    public function stopTimer()
-    {
-        $this->endTime = microtime(true);
+        return (float) 0;
     }
 
     /**
@@ -201,24 +183,16 @@ class Request implements RequestInterface
 
     /**
      * This gets called by an agent when a request has completed
-     * @param mixed $multiInfo result
-     * @return void
+     * @param array $multiInfo result
      */
-    public function callBack($mutliInfo)
+    public function callBack(array $multiInfo)
     {
-        $this->stopTimer();
-        if(array_key_exists('result', $mutliInfo)) {
-            $this->result = $mutliInfo['result'];
-        }
+        // var_dump($multiInfo);
 
         if(isset($this->curlHandle)) {
             $requestInfo = curl_getinfo($this->curlHandle);
-            if (curl_errno($this->curlHandle) !== 0 || intval($requestInfo['http_code']) !== 200) {
-                $this->success = false;
-            } else {
-                $this->success = true;
-                $this->response;
-            }
+
+            $this->succes = curl_errno($this->curlHandle) === 0 || intval($requestInfo['http_code']) === 200;
         }
 
         $this->notify();
@@ -232,7 +206,9 @@ class Request implements RequestInterface
     public function addListener(callable $function)
     {
         if (is_callable($function)) {
-            $this->listeners[] = $function;
+            if(!in_array($function, $this->listeners)) {
+                $this->listeners[] = $function;
+            }
         }
     }
 

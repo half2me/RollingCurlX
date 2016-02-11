@@ -15,6 +15,7 @@ namespace CurlX;
  * @property resource $handle cUrl handle of the request
  * @property callable[] $listeners array of registered listeners which will be called upon when request finishes
  * @property mixed $response curl's response
+ * @property mixed $result curl result
  */
 interface RequestInterface
 {
@@ -51,18 +52,6 @@ interface RequestInterface
     public function getTime();
 
     /**
-     * Start the request's internal timer
-     * @return void
-     */
-    public function startTimer();
-
-    /**
-     * Stops the request's internal timer
-     * @return void
-     */
-    public function stopTimer();
-
-    /**
      * Get the result of a query
      * @return mixed result
      */
@@ -70,10 +59,10 @@ interface RequestInterface
 
     /**
      * This gets called by an agent when a request has completed
-     * @param mixed $result result
+     * @param array $multiInfo result
      * @return void
      */
-    public function callBack($result);
+    public function callBack(array $multiInfo);
 
     /**
      * Add a listener that gets notified when the Request has completed
