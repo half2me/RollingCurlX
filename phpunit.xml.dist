@@ -23,5 +23,9 @@
         <blacklist>
             <directory suffix=".php">./vendor/</directory>
         </blacklist>
+        <!-- Prevent coverage reports from looking in tests, vendors, config folders -->
+        <whitelist>
+            <directory suffix=".php">./src/</directory>
+        </whitelist>
     </filter>
 </phpunit>

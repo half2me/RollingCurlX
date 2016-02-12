@@ -21,10 +21,11 @@ before_script:
 
 script:
   - vendor/bin/phpcs -p --extensions=php --standard=vendor/cakephp/cakephp-codesniffer/CakePHP ./src ./tests
-  - vendor/bin/phpunit --coverage-clover=clover.xml
-
+  - vendor/bin/phpunit --coverage-clover=coverage.xml
+before_install:
+  - pip install --user codecov
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - codecov
 
 notifications:
   email: false
