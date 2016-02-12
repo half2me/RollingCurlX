@@ -9,7 +9,7 @@ namespace CurlX;
  * @property int $max_concurrent The maximum number of simultaneous connections allowed
  * @property int $maxConcurrent The maximum number of simultaneous connections allowed
  * @property string $url default url for requests
- * @property array $post array of default post data for requests
+ * @property array $post_data array of default post data for requests
  * @property float $time running time of the agent
  * @property int $timeout default timeout (in msec) for requests
  * @property array $options default cUrl options for requests

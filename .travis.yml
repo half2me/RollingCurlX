@@ -21,7 +21,7 @@ before_script:
 
 script:
   - vendor/bin/phpcs -p --extensions=php --standard=vendor/cakephp/cakephp-codesniffer/CakePHP ./src ./tests
-  - vendor/bin/phpunit
+  - vendor/bin/phpunit --coverage-clover=clover.xml
 
 before_install:
   - pip install --user codecov

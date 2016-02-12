@@ -36,6 +36,7 @@ class AgentTest extends PHPUnit_Framework_TestCase
         });
 
         $r = $this->agent->newRequest();
+        $this->assertInstanceOf('CurlX\RequestInterface', $r);
 
         // Check that they were transferred properly to the newly created Request
         $this->assertEquals($this->agent->url, $r->url);
