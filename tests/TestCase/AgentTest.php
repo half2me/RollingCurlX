@@ -20,13 +20,8 @@ class AgentTest extends PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->agent = new Agent(50);
+        $this->agent = new Agent(20);
         $this->localTestUrl = 'http://localhost:8000/echo.php';
-    }
-
-    public function tearDown()
-    {
-
     }
 
     public function testNewRequest()
@@ -37,7 +32,8 @@ class AgentTest extends PHPUnit_Framework_TestCase
         $this->agent->headers = ['a' => 'a'];
         $this->agent->timeout = 5;
         $this->agent->options = [CURLOPT_BINARYTRANSFER => true];
-        $this->agent->addListener(function(RequestInterface $r) {});
+        $this->agent->addListener(function (RequestInterface $r) {
+        });
 
         $r = $this->agent->newRequest();
 
@@ -49,11 +45,11 @@ class AgentTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($this->agent->options, $r->options);
     }
 
-    public function testSomething()
+    public function testExecute()
     {
         $called = 0;
 
-        $this->agent->addListener(function(RequestInterface $req) use (&$called) {
+        $this->agent->addListener(function (RequestInterface $req) use (&$called) {
             $this->assertInstanceOf('CurlX\RequestInterface', $req);
             $called++;
         });
@@ -61,7 +57,7 @@ class AgentTest extends PHPUnit_Framework_TestCase
         $r = [];
         $this->agent->url = $this->localTestUrl;
 
-        for($i = 0; $i<20; $i++) {
+        for ($i = 0; $i < 20; $i++) {
             $r[] = $this->agent->newRequest();
         }
         $this->assertEquals($this->agent->url, $r[0]->url);
@@ -70,7 +66,7 @@ class AgentTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(20, $called);
 
-        foreach($r as $key => $req) {
+        foreach ($r as $key => $req) {
             $this->assertNotNull($req->response);
             $this->assertJson($req->response);
             $this->assertArrayHasKey('server', json_decode($req->response, true));

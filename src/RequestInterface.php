@@ -15,7 +15,7 @@ namespace CurlX;
  * @property resource $handle cUrl handle of the request
  * @property callable[] $listeners array of registered listeners which will be called upon when request finishes
  * @property mixed $response curl's response
- * @property mixed $result curl result
+ * @property int $http_code the http code of the response
  */
 interface RequestInterface
 {
@@ -121,4 +121,10 @@ interface RequestInterface
      * @return mixed response
      */
     public function getResponse();
+
+    /**
+     * Gets the http code of the response
+     * @return int http code
+     */
+    public function getHttpCode();
 }

@@ -54,16 +54,19 @@ class Agent
 
     /**
      * Agent constructor.
-     * @param int $max_concurrent max current requests
+     * @param int $maxConcurrent max current requests
      */
-    function __construct($max_concurrent = 10)
+    public function __construct($maxConcurrent = 10)
     {
-        $this->setMaxConcurrent($max_concurrent);
+        $this->setMaxConcurrent($maxConcurrent);
         $this->defaultRequest = new Request();
         $this->mh = curl_multi_init();
     }
 
-    function __destruct()
+    /**
+     * Destructor
+     */
+    public function __destruct()
     {
         curl_multi_close($this->mh);
     }
@@ -104,6 +107,7 @@ class Agent
     /**
      * Add a default listener to be added to all new Requests
      * @param callable $listener the listener
+     * @return void
      */
     public function addListener(callable $listener)
     {
@@ -112,12 +116,13 @@ class Agent
 
     /**
      * Set the maximum number of concurrent requests
-     * @param int $max_requests maximum concurrent requests
+     * @param int $maxConcurrent maximum concurrent requests
+     * @return void
      */
-    public function setMaxConcurrent($max_requests)
+    public function setMaxConcurrent($maxConcurrent)
     {
-        if ($max_requests > 0) {
-            $this->maxConcurrent = $max_requests;
+        if ($maxConcurrent > 0) {
+            $this->maxConcurrent = $maxConcurrent;
         }
     }
 
@@ -170,31 +175,33 @@ class Agent
 
     /**
      * Execute the request queue
+     * @return void
      */
     public function execute()
     {
         // start the first batch of requests
-        while($this->requestCounter < $this->maxConcurrent && $this->requestCounter < count($this->requests)) {
+        $numOfRequests = count($this->requests);
+        while ($this->requestCounter < $this->maxConcurrent && $this->requestCounter < $numOfRequests) {
             curl_multi_add_handle($this->mh, $this->requests[$this->requestCounter]->handle);
-            echo 'started ' . $this->requests[$this->requestCounter]->handle . PHP_EOL;
             $this->requestCounter++;
         }
 
         do {
-            while(($mrc = curl_multi_exec($this->mh, $running)) == CURLM_CALL_MULTI_PERFORM);
-            if($mrc != CURLM_OK)
+            while (($mrc = curl_multi_exec($this->mh, $running)) == CURLM_CALL_MULTI_PERFORM) {
+
+            }
+            if ($mrc != CURLM_OK) {
                 break;
+            }
 
             // a request was just completed -- find out which one
-            while($done = curl_multi_info_read($this->mh)) {
+            while ($done = curl_multi_info_read($this->mh)) {
                 // Callback
-                echo 'finished ' . $done['handle'] . PHP_EOL;
                 $this->getRequestByHandle($done['handle'])->callBack($done);
 
                 // start a new request
-                if($this->requestCounter < count($this->requests)) {
+                if ($this->requestCounter < $numOfRequests) {
                     curl_multi_add_handle($this->mh, $this->requests[$this->requestCounter]->handle);
-                    echo 'started ' . $this->requests[$this->requestCounter]->handle . PHP_EOL;
                     $this->requestCounter++;
 
                     // remove the curl handle that just completed

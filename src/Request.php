@@ -15,8 +15,7 @@ namespace CurlX;
  * @property resource $handle cUrl handle of the request
  * @property callable[] $listeners array of registered listeners which will be called upon when request finishes
  * @property mixed $response curl's response
- * @property mixed $result curl result
- * @property int $http_code
+ * @property int $http_code the http code of the response
  */
 class Request implements RequestInterface
 {
@@ -28,7 +27,6 @@ class Request implements RequestInterface
     protected $curlHandle;
     protected $headers = [];
     protected $options = [];
-    protected $success;
     protected $response;
     protected $httpCode;
 
@@ -89,19 +87,23 @@ class Request implements RequestInterface
         $this->options[CURLOPT_FOLLOWLOCATION] = true;
     }
 
+    /**
+     * Destructor
+     */
     public function __destruct()
     {
-        if(isset($this->curlHandle)) {
+        if (isset($this->curlHandle)) {
             curl_close($this->curlHandle);
         }
     }
 
     /**
      * Clone the object
+     * @return void
      */
     public function __clone()
     {
-        if(isset($this->curlHandle)) {
+        if (isset($this->curlHandle)) {
             $this->curlHandle = curl_copy_handle($this->curlHandle);
         }
     }
@@ -178,7 +180,7 @@ class Request implements RequestInterface
         if (isset($this->curlHandle)) {
             return curl_getinfo($this->curlHandle)['total_time'];
         }
-        return (float) 0;
+        return (float)0;
     }
 
     /**
@@ -193,15 +195,10 @@ class Request implements RequestInterface
     /**
      * This gets called by an agent when a request has completed
      * @param array $multiInfo result
+     * @return void
      */
     public function callBack(array $multiInfo)
     {
-        if(isset($this->curlHandle)) {
-            $requestInfo = curl_getinfo($this->curlHandle);
-
-            $this->success = curl_errno($this->curlHandle) === 0 || intval($requestInfo['http_code']) === 200;
-        }
-
         $this->notify();
     }
 
@@ -213,7 +210,7 @@ class Request implements RequestInterface
     public function addListener(callable $function)
     {
         if (is_callable($function)) {
-            if(!in_array($function, $this->listeners)) {
+            if (!in_array($function, $this->listeners)) {
                 $this->listeners[] = $function;
             }
         }
@@ -310,17 +307,22 @@ class Request implements RequestInterface
      */
     public function getResponse()
     {
-        if(!isset($this->response)) {
-            if(isset($this->curlHandle)) {
+        if (!isset($this->response)) {
+            if (isset($this->curlHandle)) {
                 $this->response = curl_multi_getcontent($this->curlHandle);
             }
         }
         return $this->response;
     }
 
-    public function getHttpCode() {
-        if(!isset($this->httpCode)) {
-            if(isset($this->curlHandle)) {
+    /**
+     * Get the Http code of the response
+     * @return mixed
+     */
+    public function getHttpCode()
+    {
+        if (!isset($this->httpCode)) {
+            if (isset($this->curlHandle)) {
                 $this->httpCode = curl_getinfo($this->curlHandle)['http_code'];
             }
         }

@@ -8,7 +8,6 @@
 
 namespace CurlX\Tests;
 
-
 use CurlX\Request;
 use CurlX\RequestInterface;
 use PHPUnit_Framework_TestCase;
@@ -56,12 +55,12 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $r1 = null;
         $r2 = null;
 
-        $request->addListener(function(RequestInterface $var) use (&$called1, &$r1) {
+        $request->addListener(function (RequestInterface $var) use (&$called1, &$r1) {
             $called1 = true;
             $r1 = $var;
         });
 
-        $request->addListener(function(RequestInterface $var) use (&$called2, &$r2) {
+        $request->addListener(function (RequestInterface $var) use (&$called2, &$r2) {
             $called2 = true;
             $r2 = $var;
         });
@@ -135,7 +134,8 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         // We make a Request object and set parameters
         $request = new Request('http://url.url');
-        $request->addListener(function(RequestInterface $r) {});
+        $request->addListener(function (RequestInterface $r) {
+        });
         $request->post_data = ['a' => 'a'];
         $request->headers = ['a' => 'a'];
         $request->timeout = 5;
@@ -145,7 +145,7 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $request2 = clone $request;
         $request2->url = 'http://url2.url2';
         $iWasCalled = false;
-        $request2->addListener(function(RequestInterface $r) use (&$iWasCalled) {
+        $request2->addListener(function (RequestInterface $r) use (&$iWasCalled) {
             $iWasCalled = true;
         });
         $request2->post_data = ['a' => 'A', 'b' => 'B'];
