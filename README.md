@@ -1,8 +1,11 @@
 # CurlX  
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.txt)
 [![Build Status](https://travis-ci.org/half2me/curlx.svg?branch=master)](https://travis-ci.org/half2me/curlx)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/half2me/curlx/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/half2me/curlx/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/half2me/curlx/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/half2me/curlx/?branch=master)
-
+[![Total Downloads](https://img.shields.io/packagist/dt/half2me/curlx.svg?style=flat-square)](https://packagist.org/packages/half2me/curlx)
+[![Latest Stable Version](https://img.shields.io/packagist/v/half2me/curlx.svg?style=flat-square&label=stable)](https://packagist.org/packages/half2me/curlx)
+[![Latest Unstable Version](https://img.shields.io/packagist/vpre/half2me/curlx.svg?style=flat-square&label=unstable)](https://packagist.org/packages/half2me/curlx)  
 Curl X is a fork of [RollingCurlX](https://github.com/marcushat/RollingCurlX). At fist I only created this fork to make it installable via composer for a project I was working on.
 Now it is a modern, easy-to-use, awesome wrapper for cUrl Multi Handler. With Agents and Requests, take a look at how easy everything has become.
 
