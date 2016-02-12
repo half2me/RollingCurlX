@@ -65,9 +65,6 @@ class Agent
 
     function __destruct()
     {
-        foreach($this->requests as $request) {
-            curl_multi_remove_handle($this->mh, $request->handle);
-        }
         curl_multi_close($this->mh);
     }
 
@@ -102,6 +99,15 @@ class Agent
         } else {
             return $this->defaultRequest->__get($name);
         }
+    }
+
+    /**
+     * Add a default listener to be added to all new Requests
+     * @param callable $listener the listener
+     */
+    public function addListener(callable $listener)
+    {
+        $this->defaultRequest->addListener($listener);
     }
 
     /**
@@ -170,6 +176,7 @@ class Agent
         // start the first batch of requests
         while($this->requestCounter < $this->maxConcurrent && $this->requestCounter < count($this->requests)) {
             curl_multi_add_handle($this->mh, $this->requests[$this->requestCounter]->handle);
+            echo 'started ' . $this->requests[$this->requestCounter]->handle . PHP_EOL;
             $this->requestCounter++;
         }
 
@@ -181,11 +188,13 @@ class Agent
             // a request was just completed -- find out which one
             while($done = curl_multi_info_read($this->mh)) {
                 // Callback
+                echo 'finished ' . $done['handle'] . PHP_EOL;
                 $this->getRequestByHandle($done['handle'])->callBack($done);
 
                 // start a new request
                 if($this->requestCounter < count($this->requests)) {
                     curl_multi_add_handle($this->mh, $this->requests[$this->requestCounter]->handle);
+                    echo 'started ' . $this->requests[$this->requestCounter]->handle . PHP_EOL;
                     $this->requestCounter++;
 
                     // remove the curl handle that just completed
@@ -193,10 +202,5 @@ class Agent
                 }
             }
         } while ($running);
-    }
-
-    public function addListener(callable $function)
-    {
-        $this->defaultRequest->addListener($function);
     }
 }

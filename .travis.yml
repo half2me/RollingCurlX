@@ -14,6 +14,8 @@ before_script:
   - composer self-update
   - composer install --prefer-dist --no-interaction
   - phpenv rehash
+  - php -S localhost:8000 -t tests &
+  - sleep 3
 
 script:
   - vendor/bin/phpcs -p --extensions=php --standard=vendor/cakephp/cakephp-codesniffer/CakePHP ./src ./tests

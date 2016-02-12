@@ -6,11 +6,22 @@ use CurlX\Agent;
 use CurlX\RequestInterface;
 use PHPUnit_Framework_TestCase;
 
+/**
+ * Class AgentTest
+ * @package CurlX\Tests
+ *
+ * @property Agent $agent
+ * @property string $localTestUrl
+ */
 class AgentTest extends PHPUnit_Framework_TestCase
 {
+    protected $agent;
+    protected $localTestUrl;
+
     public function setUp()
     {
-
+        $this->agent = new Agent(50);
+        $this->localTestUrl = 'http://localhost:8000/echo.php';
     }
 
     public function tearDown()
@@ -18,32 +29,51 @@ class AgentTest extends PHPUnit_Framework_TestCase
 
     }
 
+    public function testNewRequest()
+    {
+        // We set the default parameters
+        $this->agent->url = $this->localTestUrl;
+        $this->agent->post_data = ['a' => 'a'];
+        $this->agent->headers = ['a' => 'a'];
+        $this->agent->timeout = 5;
+        $this->agent->options = [CURLOPT_BINARYTRANSFER => true];
+        $this->agent->addListener(function(RequestInterface $r) {});
+
+        $r = $this->agent->newRequest();
+
+        // Check that they were transferred properly to the newly created Request
+        $this->assertEquals($this->agent->url, $r->url);
+        $this->assertEquals($this->agent->post_data, $r->post_data);
+        $this->assertEquals($this->agent->headers, $r->headers);
+        $this->assertEquals($this->agent->timeout, $r->timeout);
+        $this->assertEquals($this->agent->options, $r->options);
+    }
+
     public function testSomething()
     {
-        $agent = new Agent(10);
-
         $called = 0;
 
-        $agent->addListener(function(RequestInterface $req) use (&$called) {
+        $this->agent->addListener(function(RequestInterface $req) use (&$called) {
             $this->assertInstanceOf('CurlX\RequestInterface', $req);
             $called++;
         });
 
         $r = [];
-        $agent->url = 'http://jsonplaceholder.typeicode.com/posts/1';
+        $this->agent->url = $this->localTestUrl;
 
         for($i = 0; $i<20; $i++) {
-            $r[] = $agent->newRequest();
+            $r[] = $this->agent->newRequest();
         }
+        $this->assertEquals($this->agent->url, $r[0]->url);
 
-        $agent->execute();
+        $this->agent->execute();
 
         $this->assertEquals(20, $called);
-        foreach($r as $req) {
-            $this->assertNotNull($req->response);
-        }
 
-        var_dump($r[19]->response);
-        var_dump($r[19]->url);
+        foreach($r as $key => $req) {
+            $this->assertNotNull($req->response);
+            $this->assertJson($req->response);
+            $this->assertArrayHasKey('server', json_decode($req->response, true));
+        }
     }
 }
