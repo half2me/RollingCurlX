@@ -77,9 +77,19 @@ or we can register a separate callback function for each request.
 $request1->addListener('myCallbackFunction'); // For a single request
 $agent->addListener('myCallbackFunction'); // For all requests to use the same callback
 // Note, this will only apply to requests made after the addListener() was called.
+
+// You can use anonymous functions for callbacks like this:
+$request->addListener(function(CurlX\RequestInterface $request) {
+    // Each listener (or callback function) will upon request completion receieve
+    // in the function parameter, the completed request object
+    
+    echo $request->response; // Response is stored here
+    echo $request->http_code; // Get the http code of the reply
+});
 ```
 
+
 ### Issues
-If you find any issues please let me know.
+If you find any issues please let me know. Submit an issue or PR on github
 
 Enjoy.
