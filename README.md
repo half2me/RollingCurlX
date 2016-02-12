@@ -2,7 +2,7 @@
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.txt)
 [![Build Status](https://travis-ci.org/half2me/curlx.svg?branch=master)](https://travis-ci.org/half2me/curlx)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/half2me/curlx/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/half2me/curlx/?branch=master)
-[![Code Coverage](https://scrutinizer-ci.com/g/half2me/curlx/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/half2me/curlx/?branch=master)
+[![codecov.io](https://codecov.io/github/half2me/curlx/coverage.svg?branch=master)](https://codecov.io/github/half2me/curlx?branch=master)
 [![Total Downloads](https://img.shields.io/packagist/dt/half2me/curlx.svg?style=flat-square)](https://packagist.org/packages/half2me/curlx)
 [![Latest Stable Version](https://img.shields.io/packagist/v/half2me/curlx.svg?style=flat-square&label=stable)](https://packagist.org/packages/half2me/curlx)
 [![Latest Unstable Version](https://img.shields.io/packagist/vpre/half2me/curlx.svg?style=flat-square&label=unstable)](https://packagist.org/packages/half2me/curlx)  
