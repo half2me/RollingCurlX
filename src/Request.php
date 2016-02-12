@@ -16,6 +16,7 @@ namespace CurlX;
  * @property callable[] $listeners array of registered listeners which will be called upon when request finishes
  * @property mixed $response curl's response
  * @property mixed $result curl result
+ * @property int $http_code
  */
 class Request implements RequestInterface
 {
@@ -29,6 +30,7 @@ class Request implements RequestInterface
     protected $options = [];
     protected $success;
     protected $response;
+    protected $httpCode;
 
     /**
      * Camelizes a string
@@ -89,8 +91,8 @@ class Request implements RequestInterface
 
     public function __destruct()
     {
-        if(isset($this->handle)) {
-            curl_close($this->handle);
+        if(isset($this->curlHandle)) {
+            curl_close($this->curlHandle);
         }
     }
 
@@ -99,8 +101,8 @@ class Request implements RequestInterface
      */
     public function __clone()
     {
-        if(isset($this->handle)) {
-            $this->handle = curl_copy_handle($this->handle);
+        if(isset($this->curlHandle)) {
+            $this->curlHandle = curl_copy_handle($this->curlHandle);
         }
     }
 
@@ -173,8 +175,8 @@ class Request implements RequestInterface
      */
     public function getTime()
     {
-        if (isset($this->handle)) {
-            return curl_getinfo($this->handle)['total_time'];
+        if (isset($this->curlHandle)) {
+            return curl_getinfo($this->curlHandle)['total_time'];
         }
         return (float) 0;
     }
@@ -309,10 +311,19 @@ class Request implements RequestInterface
     public function getResponse()
     {
         if(!isset($this->response)) {
-            if(isset($this->handle)) {
-                $this->response = curl_multi_getcontent($this->handle);
+            if(isset($this->curlHandle)) {
+                $this->response = curl_multi_getcontent($this->curlHandle);
             }
         }
         return $this->response;
+    }
+
+    public function getHttpCode() {
+        if(!isset($this->httpCode)) {
+            if(isset($this->curlHandle)) {
+                $this->httpCode = curl_getinfo($this->curlHandle)['http_code'];
+            }
+        }
+        return $this->httpCode;
     }
 }

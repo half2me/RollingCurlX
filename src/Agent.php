@@ -167,33 +167,32 @@ class Agent
      */
     public function execute()
     {
-        foreach ($this->requests as $key => $request) {
-            if ($this->requestCounter >= $this->maxConcurrent) {
-                break;
-            }
-            curl_multi_add_handle($this->mh, $request->handle);
+        // start the first batch of requests
+        while($this->requestCounter < $this->maxConcurrent && $this->requestCounter < count($this->requests)) {
+            curl_multi_add_handle($this->mh, $this->requests[$this->requestCounter]->handle);
             $this->requestCounter++;
         }
 
-        // Start the request
         do {
-            $mrc = curl_multi_exec($this->mh, $active);
-        } while ($mrc == CURLM_CALL_MULTI_PERFORM);
+            while(($mrc = curl_multi_exec($this->mh, $running)) == CURLM_CALL_MULTI_PERFORM);
+            if($mrc != CURLM_OK)
+                break;
 
-        while ($active && $mrc == CURLM_OK) {
-            while (curl_multi_exec($this->mh, $active) === CURLM_CALL_MULTI_PERFORM) ;
+            // a request was just completed -- find out which one
+            while($done = curl_multi_info_read($this->mh)) {
+                // Callback
+                $this->getRequestByHandle($done['handle'])->callBack($done);
 
-            if (curl_multi_select($this->mh) != -1) {
-                do {
-                    $mrc = curl_multi_exec($this->mh, $active);
-                    if ($mrc == CURLM_OK) {
-                        while ($info = curl_multi_info_read($this->mh)) {
-                            $this->getRequestByHandle($info['handle'])->callBack($info);
-                        }
-                    }
-                } while ($mrc == CURLM_CALL_MULTI_PERFORM);
+                // start a new request
+                if($this->requestCounter < count($this->requests)) {
+                    curl_multi_add_handle($this->mh, $this->requests[$this->requestCounter]->handle);
+                    $this->requestCounter++;
+
+                    // remove the curl handle that just completed
+                    curl_multi_remove_handle($this->mh, $done['handle']);
+                }
             }
-        }
+        } while ($running);
     }
 
     public function addListener(callable $function)

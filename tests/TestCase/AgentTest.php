@@ -29,14 +29,21 @@ class AgentTest extends PHPUnit_Framework_TestCase
             $called++;
         });
 
-        $r1 = $agent->newRequest('https://google.com');
-        $r2 = $agent->newRequest('https://google.com');
-        $r3 = $agent->newRequest('https://google.com');
+        $r = [];
+        $agent->url = 'http://jsonplaceholder.typeicode.com/posts/1';
+
+        for($i = 0; $i<20; $i++) {
+            $r[] = $agent->newRequest();
+        }
 
         $agent->execute();
 
-        $this->assertEquals(3, $called);
+        $this->assertEquals(20, $called);
+        foreach($r as $req) {
+            $this->assertNotNull($req->response);
+        }
 
-        var_dump($r1->response);
+        var_dump($r[19]->response);
+        var_dump($r[19]->url);
     }
 }
