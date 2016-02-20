@@ -35,8 +35,8 @@ Next we create/add a request to the queue
 $request = $agent->newRequest('http://myurl.com'); // URL can optionally be set here
 $request->url = 'http://myurl.com'; // or here
 $request->timeout = 5000; // We can set different timeout values (in msec) for each request
-$request->post = ['Agents' => 'AreCool']; // We can add post fields as arrays
-$request->post = ['MoreAgents' => 'AreCooler']; // This will be appended to the post values already set
+$request->post_data = ['Agents' => 'AreCool']; // We can add post fields as arrays
+$request->post_data = ['MoreAgents' => 'AreCooler']; // This will be appended to the post values already set
 $request->headers = ['Content-type' => 'agent/xml', 'Authorization' => 'ninja-stuff']; // Headers can easily be set
 $request->headers = ['Agent-type: Ninja']; // These will be appended to the header list
 $request->options = ['CURLOPT_SOME_OPTION' => 'your-value']; // Advanced options can be set for cURL
@@ -51,13 +51,13 @@ If we have many requests using similar headers, urls, or timeout values, we can 
 and use them in all of the requests.
 For example:
 ```php
-$agent->post = ['AllAgents' => 'AreCool'];
+$agent->post_data = ['AllAgents' => 'AreCool'];
 $request = $agent->newRequest();
 
-echo $request->post['AllAgents']; // this will output 'AreCool'
+echo $request->post_data['AllAgents']; // this will output 'AreCool'
 
 // of course we can always overwrite this:
-$request->post = ['AllAgents' => 'AreSuperDuperCool']; // This will overwrite that post value
+$request->post_data = ['AllAgents' => 'AreSuperDuperCool']; // This will overwrite that post value
 ```
 
 Once we have our agent loaded up with requests
