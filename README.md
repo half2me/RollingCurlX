@@ -17,7 +17,7 @@ PHP 5.6+
 
 # Installing
 Installing is easy with composer. Just do
-`composer require half2me/curlx:~1.0`
+`composer require half2me/curlx:^1.0`
 
 ##How to Use
 
