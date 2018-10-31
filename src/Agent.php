@@ -38,7 +38,7 @@ class Agent
     /**
      * @var RequestInterface[] array of Requests
      */
-    protected $requests;
+    protected $requests = [];
 
     /**
      * @var Request default request
